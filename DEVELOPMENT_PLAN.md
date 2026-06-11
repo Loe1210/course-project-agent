@@ -51,7 +51,7 @@ fix: repair course project stream response
 | 顺序 | 模块 | 分支 | 状态 |
 |---|---|---|---|
 | 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 已合并 |
-| 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 未开始 |
+| 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 待推送 |
 | 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 未开始 |
 | 3 | Tool 工具模块 | `feature/course-tools` | 未开始 |
 | 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 未开始 |
@@ -176,7 +176,37 @@ feature/project-scaffold
 当前状态：
 
 ```text
-未开始
+待推送
+```
+
+开发记录：
+
+```text
+开发时间：2026-06-11
+开发分支：feature/project-scaffold
+已创建：Maven Spring Boot 项目骨架
+已创建：pom.xml
+已创建：CourseProjectAgentApplication 启动类
+已创建：/api/health 健康检查接口
+已创建：application.yml 基础配置
+已创建：controller / service / config / dto / agent/tool 基础包结构
+已创建：静态首页 src/main/resources/static/index.html
+已创建：README.md
+已创建：.gitignore
+已创建：Spring Boot 基础测试类
+```
+
+检查结果：
+
+```text
+Java 检查：通过，当前环境可用 Java 17
+javac 检查：通过，当前环境可用 javac 17
+pom.xml XML 解析：通过，artifactId=course-project-agent
+关键路径检查：通过，启动类与 pom.xml mainClass 一致
+Maven 位置：C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.4.1\plugins\maven\lib\maven3\bin\mvn.cmd
+Maven 版本：Apache Maven 3.9.11
+Maven 编译检查：通过，使用 IDEA 自带 Maven 执行 mvn test
+测试结果：Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 ```
 
 ### 2. RAG 知识库模块
@@ -512,14 +542,17 @@ release/course-project-agent-v1
 | 2026-06-11 | 仓库与工程基线模块 | `main` | 配置 GitHub remote 并推送 main | 已完成 |
 | 2026-06-11 | 仓库与工程基线模块 | `chore/repo-baseline` | 推送基线功能分支 | 已完成，待用户确认合并 |
 | 2026-06-11 | 仓库与工程基线模块 | `main` | 合并 chore/repo-baseline 并推送 main | 已完成 |
+| 2026-06-11 | 项目脚手架与配置模块 | `feature/project-scaffold` | 创建 Spring Boot Maven 基础工程与健康检查接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 
 ## 7. 当前下一步
 
 建议下一步执行：
 
 ```text
-第 0 步：仓库与工程基线模块
-分支：chore/repo-baseline
+第 1 步收尾：合并项目脚手架与配置模块
+当前功能分支：feature/project-scaffold
+目标主分支：main
+下一步动作：等待用户确认后，将 feature/project-scaffold 合并到 main 并推送 main
 ```
 
 执行前需要用户确认。

@@ -52,7 +52,7 @@ fix: repair course project stream response
 |---|---|---|---|
 | 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 已合并 |
 | 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 已合并 |
-| 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 未开始 |
+| 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 待推送 |
 | 3 | Tool 工具模块 | `feature/course-tools` | 未开始 |
 | 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 未开始 |
 | 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 未开始 |
@@ -243,7 +243,33 @@ feature/rag-knowledge-base
 当前状态：
 
 ```text
-未开始
+待推送
+```
+
+开发记录：
+
+```text
+开发时间：2026-06-11
+开发分支：feature/rag-knowledge-base
+已创建：course-project-docs 初始知识库目录和 6 份课设资料文档
+已创建：DocumentChunkConfig / FileUploadConfig / MilvusProperties / RagProperties
+已创建：MilvusConfig / MilvusClientFactory / MilvusConstants
+已创建：DocumentChunk / FileUploadResponse / ApiResponse
+已创建：DocumentChunkService / VectorEmbeddingService / VectorIndexService / VectorSearchService
+已创建：FileUploadController
+已创建：CourseKnowledgeTools.queryCourseProjectKnowledge
+已补充：pom.xml 的 gson 依赖
+```
+
+检查结果：
+
+```text
+测试工具：IDEA 自带 Maven 3.9.11
+测试命令：mvn test
+测试结果：BUILD SUCCESS
+测试明细：Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+覆盖内容：Spring Boot 上下文启动、文档分片单元测试
+已知提示：VectorSearchService 编译阶段存在 deprecated API 提示，但不影响当前构建成功
 ```
 
 ### 3. Tool 工具模块
@@ -545,6 +571,7 @@ release/course-project-agent-v1
 | 2026-06-11 | 仓库与工程基线模块 | `main` | 合并 chore/repo-baseline 并推送 main | 已完成 |
 | 2026-06-11 | 项目脚手架与配置模块 | `feature/project-scaffold` | 创建 Spring Boot Maven 基础工程与健康检查接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-11 | 项目脚手架与配置模块 | `main` | 合并 feature/project-scaffold | 已完成 |
+| 2026-06-11 | RAG 知识库模块 | `feature/rag-knowledge-base` | 实现知识库文档、上传、分片、向量化、Milvus 检索和知识库工具 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 
 ## 7. 当前下一步
 
@@ -553,7 +580,7 @@ release/course-project-agent-v1
 ```text
 第 2 步：RAG 知识库模块
 建议分支：feature/rag-knowledge-base
-下一步动作：等待用户确认后，创建 RAG 功能分支并开始实现课设知识库上传、分片、向量化、检索和 queryCourseProjectKnowledge 工具
+下一步动作：等待用户确认后，将 feature/rag-knowledge-base 推送并准备合并到 main
 ```
 
 执行前需要用户确认。

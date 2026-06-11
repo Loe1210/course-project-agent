@@ -203,8 +203,10 @@ Java 检查：通过，当前环境可用 Java 17
 javac 检查：通过，当前环境可用 javac 17
 pom.xml XML 解析：通过，artifactId=course-project-agent
 关键路径检查：通过，启动类与 pom.xml mainClass 一致
-Maven 编译检查：未执行，原因是当前环境未安装 mvn，也没有 mvnw.cmd
-风险说明：需要后续在安装 Maven 或加入 Maven Wrapper 后补跑 mvn test
+Maven 位置：C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.4.1\plugins\maven\lib\maven3\bin\mvn.cmd
+Maven 版本：Apache Maven 3.9.11
+Maven 编译检查：通过，使用 IDEA 自带 Maven 执行 mvn test
+测试结果：Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 ```
 
 ### 2. RAG 知识库模块
@@ -540,7 +542,7 @@ release/course-project-agent-v1
 | 2026-06-11 | 仓库与工程基线模块 | `main` | 配置 GitHub remote 并推送 main | 已完成 |
 | 2026-06-11 | 仓库与工程基线模块 | `chore/repo-baseline` | 推送基线功能分支 | 已完成，待用户确认合并 |
 | 2026-06-11 | 仓库与工程基线模块 | `main` | 合并 chore/repo-baseline 并推送 main | 已完成 |
-| 2026-06-11 | 项目脚手架与配置模块 | `feature/project-scaffold` | 创建 Spring Boot Maven 基础工程与健康检查接口 | 本地完成，Maven 检查受限于环境缺少 mvn |
+| 2026-06-11 | 项目脚手架与配置模块 | `feature/project-scaffold` | 创建 Spring Boot Maven 基础工程与健康检查接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 
 ## 7. 当前下一步
 

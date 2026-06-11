@@ -549,8 +549,10 @@ release/course-project-agent-v1
 建议下一步执行：
 
 ```text
-第 0 步：仓库与工程基线模块
-分支：chore/repo-baseline
+第 1 步收尾：合并项目脚手架与配置模块
+当前功能分支：feature/project-scaffold
+目标主分支：main
+下一步动作：等待用户确认后，将 feature/project-scaffold 合并到 main 并推送 main
 ```
 
 执行前需要用户确认。

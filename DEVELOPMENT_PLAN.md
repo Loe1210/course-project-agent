@@ -50,7 +50,7 @@ fix: repair course project stream response
 
 | 顺序 | 模块 | 分支 | 状态 |
 |---|---|---|---|
-| 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 待推送 |
+| 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 待合并 |
 | 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 未开始 |
 | 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 未开始 |
 | 3 | Tool 工具模块 | `feature/course-tools` | 未开始 |
@@ -102,7 +102,7 @@ chore/repo-baseline
 当前状态：
 
 ```text
-待推送
+待合并
 ```
 
 检查结果：
@@ -137,7 +137,10 @@ GitHub remote：无
 本地提交身份：已配置为当前仓库局部配置 Codex <codex@example.local>
 初始提交：已在 main 提交 DEVELOPMENT_PLAN.md
 基线分支：已创建 chore/repo-baseline
-GitHub remote：仍未配置，等待用户提供仓库地址
+GitHub remote：已配置为 https://github.com/Loe1210/course-project-agent.git
+远程推送：main 已推送并跟踪 origin/main
+远程推送：chore/repo-baseline 已推送并跟踪 origin/chore/repo-baseline
+当前状态：等待用户确认是否将 chore/repo-baseline 合并回 main
 ```
 
 ### 1. 项目脚手架与配置模块
@@ -505,6 +508,8 @@ release/course-project-agent-v1
 | 2026-06-11 | 仓库与工程基线模块 | `chore/repo-baseline` | 检查项目目录、Git 仓库、分支和 remote | 阻塞：项目尚未初始化 Git 仓库，未配置 GitHub remote |
 | 2026-06-11 | 仓库与工程基线模块 | `main` | 初始化本地 Git 仓库，设置主分支和本地提交身份 | 已完成，remote 待配置 |
 | 2026-06-11 | 仓库与工程基线模块 | `chore/repo-baseline` | 创建基线功能分支并记录当前状态 | 本地完成，待配置 GitHub remote 后推送 |
+| 2026-06-11 | 仓库与工程基线模块 | `main` | 配置 GitHub remote 并推送 main | 已完成 |
+| 2026-06-11 | 仓库与工程基线模块 | `chore/repo-baseline` | 推送基线功能分支 | 已完成，待用户确认合并 |
 
 ## 7. 当前下一步
 

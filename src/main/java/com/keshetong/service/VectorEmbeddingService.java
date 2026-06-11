@@ -31,7 +31,7 @@ public class VectorEmbeddingService {
     public List<Float> generateEmbedding(String content) {
         validateApiKey();
         if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("Content must not be empty");
+            throw new IllegalArgumentException("待向量化的内容不能为空");
         }
         try {
             Constants.apiKey = apiKey;
@@ -42,10 +42,10 @@ public class VectorEmbeddingService {
             TextEmbeddingResult result = textEmbedding.call(param);
             return extractVector(result);
         } catch (NoApiKeyException e) {
-            throw new RuntimeException("DashScope API key is invalid or missing", e);
+            throw new RuntimeException("DashScope API Key 无效或未配置", e);
         } catch (Exception e) {
-            logger.error("Failed to generate embedding", e);
-            throw new RuntimeException("Failed to generate embedding: " + e.getMessage(), e);
+            logger.error("生成向量失败", e);
+            throw new RuntimeException("生成向量失败：" + e.getMessage(), e);
         }
     }
 
@@ -55,17 +55,17 @@ public class VectorEmbeddingService {
 
     private void validateApiKey() {
         if (apiKey == null || apiKey.isBlank() || "your-api-key-here".equals(apiKey)) {
-            throw new IllegalStateException("Please configure DASHSCOPE_API_KEY before using RAG features");
+            throw new IllegalStateException("在使用 RAG 功能前，请先配置 DASHSCOPE_API_KEY");
         }
     }
 
     private List<Float> extractVector(TextEmbeddingResult result) {
         if (result == null || result.getOutput() == null || result.getOutput().getEmbeddings() == null) {
-            throw new RuntimeException("DashScope returned an empty embedding result");
+            throw new RuntimeException("DashScope 返回的向量结果为空");
         }
         List<TextEmbeddingResultItem> items = result.getOutput().getEmbeddings();
         if (items.isEmpty()) {
-            throw new RuntimeException("DashScope returned no embedding items");
+            throw new RuntimeException("DashScope 未返回任何向量数据");
         }
         List<Float> vector = new ArrayList<>(items.get(0).getEmbedding().size());
         for (Double value : items.get(0).getEmbedding()) {

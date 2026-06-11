@@ -27,22 +27,21 @@ public class CourseKnowledgeTools {
         this.ragProperties = ragProperties;
     }
 
-    @Tool(description = "Use this tool to search the software course project knowledge base. " +
-            "It retrieves scoring standards, report templates, design rules, example topics, defense preparation materials, " +
-            "and other relevant course project documents.")
+    @Tool(description = "使用该工具检索软件课程设计知识库。" +
+            "可获取评分标准、报告模板、设计规范、选题示例、答辩准备资料等相关课程设计文档。")
     public String queryCourseProjectKnowledge(
-            @ToolParam(description = "Search query describing the course project knowledge you need") String query) {
+            @ToolParam(description = "用于描述你需要查询的课程设计知识内容") String query) {
         try {
             List<VectorSearchService.SearchResult> results =
                     vectorSearchService.searchSimilarDocuments(query, ragProperties.getTopK());
             if (results.isEmpty()) {
-                return "{\"status\":\"no_results\",\"message\":\"No relevant course project knowledge found.\"}";
+                return "{\"status\":\"no_results\",\"message\":\"未检索到相关课程设计知识。\"}";
             }
             return objectMapper.writeValueAsString(results);
         } catch (Exception e) {
-            logger.error("queryCourseProjectKnowledge failed", e);
+            logger.error("查询课程设计知识库失败", e);
             return String.format(
-                    "{\"status\":\"error\",\"message\":\"Failed to query course project knowledge: %s\"}",
+                    "{\"status\":\"error\",\"message\":\"查询课程设计知识库失败：%s\"}",
                     e.getMessage().replace("\"", "'")
             );
         }

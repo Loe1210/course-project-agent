@@ -14,7 +14,7 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> success(T data) {
         ApiResponse<T> response = new ApiResponse<>();
         response.setCode(200);
-        response.setMessage("success");
+        response.setMessage("成功");
         response.setData(data);
         return response;
     }

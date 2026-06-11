@@ -36,14 +36,14 @@ public class MilvusClientFactory {
 
     public MilvusServiceClient createClient() {
         if (!milvusProperties.isEnabled()) {
-            throw new IllegalStateException("Milvus is disabled by configuration");
+            throw new IllegalStateException("Milvus 已在配置中被禁用");
         }
 
         MilvusServiceClient client = null;
         try {
             client = connectToMilvus();
             if (!collectionExists(client, ragProperties.getCollectionName())) {
-                logger.info("Creating Milvus collection {}", ragProperties.getCollectionName());
+                logger.info("正在创建 Milvus 集合：{}", ragProperties.getCollectionName());
                 createKnowledgeCollection(client);
                 createIndexes(client);
             }
@@ -52,7 +52,7 @@ public class MilvusClientFactory {
             if (client != null) {
                 client.close();
             }
-            throw new RuntimeException("Failed to initialize Milvus client: " + e.getMessage(), e);
+            throw new RuntimeException("初始化 Milvus 客户端失败：" + e.getMessage(), e);
         }
     }
 
@@ -72,7 +72,7 @@ public class MilvusClientFactory {
                 HasCollectionParam.newBuilder().withCollectionName(collectionName).build()
         );
         if (response.getStatus() != 0) {
-            throw new RuntimeException("Failed to check collection: " + response.getMessage());
+            throw new RuntimeException("检查 Milvus 集合是否存在失败：" + response.getMessage());
         }
         return response.getData();
     }
@@ -112,14 +112,14 @@ public class MilvusClientFactory {
 
         CreateCollectionParam createParam = CreateCollectionParam.newBuilder()
                 .withCollectionName(ragProperties.getCollectionName())
-                .withDescription("Course project knowledge collection")
+                .withDescription("课程设计知识库集合")
                 .withSchema(schema)
                 .withShardsNum(MilvusConstants.DEFAULT_SHARD_NUMBER)
                 .build();
 
         R<RpcStatus> response = client.createCollection(createParam);
         if (response.getStatus() != 0) {
-            throw new RuntimeException("Failed to create collection: " + response.getMessage());
+            throw new RuntimeException("创建 Milvus 集合失败：" + response.getMessage());
         }
     }
 
@@ -135,7 +135,7 @@ public class MilvusClientFactory {
 
         R<RpcStatus> response = client.createIndex(indexParam);
         if (response.getStatus() != 0) {
-            throw new RuntimeException("Failed to create vector index: " + response.getMessage());
+            throw new RuntimeException("创建向量索引失败：" + response.getMessage());
         }
     }
 }

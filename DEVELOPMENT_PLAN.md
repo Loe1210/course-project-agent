@@ -50,7 +50,7 @@ fix: repair course project stream response
 
 | 顺序 | 模块 | 分支 | 状态 |
 |---|---|---|---|
-| 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 待合并 |
+| 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 已合并 |
 | 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 未开始 |
 | 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 未开始 |
 | 3 | Tool 工具模块 | `feature/course-tools` | 未开始 |
@@ -102,7 +102,7 @@ chore/repo-baseline
 当前状态：
 
 ```text
-待合并
+已合并
 ```
 
 检查结果：
@@ -140,7 +140,8 @@ GitHub remote：无
 GitHub remote：已配置为 https://github.com/Loe1210/course-project-agent.git
 远程推送：main 已推送并跟踪 origin/main
 远程推送：chore/repo-baseline 已推送并跟踪 origin/chore/repo-baseline
-当前状态：等待用户确认是否将 chore/repo-baseline 合并回 main
+合并状态：chore/repo-baseline 已合并回 main
+当前状态：第 0 步完成，等待进入第 1 步项目脚手架与配置模块
 ```
 
 ### 1. 项目脚手架与配置模块
@@ -510,6 +511,7 @@ release/course-project-agent-v1
 | 2026-06-11 | 仓库与工程基线模块 | `chore/repo-baseline` | 创建基线功能分支并记录当前状态 | 本地完成，待配置 GitHub remote 后推送 |
 | 2026-06-11 | 仓库与工程基线模块 | `main` | 配置 GitHub remote 并推送 main | 已完成 |
 | 2026-06-11 | 仓库与工程基线模块 | `chore/repo-baseline` | 推送基线功能分支 | 已完成，待用户确认合并 |
+| 2026-06-11 | 仓库与工程基线模块 | `main` | 合并 chore/repo-baseline 并推送 main | 已完成 |
 
 ## 7. 当前下一步
 

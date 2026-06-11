@@ -1,0 +1,61 @@
+server:
+  port: 9900
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: course-project-agent
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:your-api-key-here}
+      chat:
+        options:
+          timeout: 180000
+      retry:
+        max-attempts: 3
+        backoff:
+          initial-interval: 2000
+          multiplier: 2
+          max-interval: 10000
+    mcp:
+      client:
+        enabled: false
+
+file:
+  upload:
+    path: ./uploads
+    allowed-extensions: txt,md
+
+milvus:
+  host: localhost
+  port: 19530
+  username: ""
+  password: ""
+  database: default
+  timeout: 10000
+
+dashscope:
+  api:
+    key: ${DASHSCOPE_API_KEY:your-api-key-here}
+  embedding:
+    model: text-embedding-v4
+
+document:
+  chunk:
+    max-size: 800
+    overlap: 100
+
+rag:
+  top-k: 3
+  collection-name: course_project_knowledge
+
+course-project:
+  default-topic: 校园二手交易平台
+  default-tech-stack:
+    - Spring Boot
+    - Vue
+    - MySQL

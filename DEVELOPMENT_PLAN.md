@@ -51,7 +51,7 @@ fix: repair course project stream response
 | 顺序 | 模块 | 分支 | 状态 |
 |---|---|---|---|
 | 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 已合并 |
-| 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 待推送 |
+| 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 已合并 |
 | 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 未开始 |
 | 3 | Tool 工具模块 | `feature/course-tools` | 未开始 |
 | 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 未开始 |
@@ -176,7 +176,7 @@ feature/project-scaffold
 当前状态：
 
 ```text
-待推送
+已合并
 ```
 
 开发记录：
@@ -207,6 +207,7 @@ Maven 位置：C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.4.1\plugins\maven
 Maven 版本：Apache Maven 3.9.11
 Maven 编译检查：通过，使用 IDEA 自带 Maven 执行 mvn test
 测试结果：Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+合并状态：feature/project-scaffold 已合并回 main
 ```
 
 ### 2. RAG 知识库模块
@@ -543,16 +544,16 @@ release/course-project-agent-v1
 | 2026-06-11 | 仓库与工程基线模块 | `chore/repo-baseline` | 推送基线功能分支 | 已完成，待用户确认合并 |
 | 2026-06-11 | 仓库与工程基线模块 | `main` | 合并 chore/repo-baseline 并推送 main | 已完成 |
 | 2026-06-11 | 项目脚手架与配置模块 | `feature/project-scaffold` | 创建 Spring Boot Maven 基础工程与健康检查接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
+| 2026-06-11 | 项目脚手架与配置模块 | `main` | 合并 feature/project-scaffold | 已完成 |
 
 ## 7. 当前下一步
 
 建议下一步执行：
 
 ```text
-第 1 步收尾：合并项目脚手架与配置模块
-当前功能分支：feature/project-scaffold
-目标主分支：main
-下一步动作：等待用户确认后，将 feature/project-scaffold 合并到 main 并推送 main
+第 2 步：RAG 知识库模块
+建议分支：feature/rag-knowledge-base
+下一步动作：等待用户确认后，创建 RAG 功能分支并开始实现课设知识库上传、分片、向量化、检索和 queryCourseProjectKnowledge 工具
 ```
 
 执行前需要用户确认。

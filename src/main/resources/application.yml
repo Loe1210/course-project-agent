@@ -68,3 +68,6 @@ course-chat:
 course-project-agent:
   enable-tools: true
   default-request-prefix: course-project
+
+artifact-generation:
+  enable-llm-draft: true

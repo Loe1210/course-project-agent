@@ -25,4 +25,11 @@ public class ApiResponse<T> {
         response.setMessage(message);
         return response;
     }
+
+    public static <T> ApiResponse<T> badRequest(String message) {
+        ApiResponse<T> response = new ApiResponse<>();
+        response.setCode(400);
+        response.setMessage(message);
+        return response;
+    }
 }

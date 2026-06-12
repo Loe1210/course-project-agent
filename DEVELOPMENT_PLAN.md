@@ -55,7 +55,7 @@ fix: repair course project stream response
 | 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 已合并 |
 | 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 已合并 |
 | 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 已合并 |
-| 3 | Tool 工具模块 | `feature/course-tools` | 未开始 |
+| 3 | Tool 工具模块 | `feature/course-tools` | 待推送 |
 | 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 未开始 |
 | 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 未开始 |
 | 6 | 课设产物生成模块 | `feature/artifact-generation` | 未开始 |
@@ -306,7 +306,35 @@ feature/course-tools
 当前状态：
 
 ```text
-未开始
+待推送
+```
+
+开发记录：
+
+```text
+开发时间：2026-06-12
+开发分支：feature/course-tools
+已创建：CourseProjectProperties 课设默认配置
+已创建：CourseToolSupportService 工具层公共支持服务
+已创建：TopicRecommendTools
+已创建：DatabaseDesignTools
+已创建：ApiDesignTools
+已创建：ProjectTemplateTools
+已创建：ReportTools
+已创建：DefenseTools
+已创建：DateTimeTools
+已创建：CourseToolsSmokeTests
+```
+
+检查结果：
+
+```text
+测试工具：IDEA 自带 Maven 3.9.11
+测试命令：mvn test
+测试结果：BUILD SUCCESS
+测试明细：Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+覆盖内容：工具模块 smoke test、Spring Boot 上下文启动、文档分片单元测试
+说明：所有工具描述、返回内容、失败文案均为中文
 ```
 
 ### 4. ReAct 课设对话 Agent 模块
@@ -575,15 +603,16 @@ release/course-project-agent-v1
 | 2026-06-11 | 项目脚手架与配置模块 | `main` | 合并 feature/project-scaffold | 已完成 |
 | 2026-06-11 | RAG 知识库模块 | `feature/rag-knowledge-base` | 实现知识库文档、上传、分片、向量化、Milvus 检索和知识库工具 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-11 | 中文化修正规范 | `feature/chinese-message-standardization` | 统一 RAG 模块提示词、报错、日志与 Agent 问答语言为中文 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
+| 2026-06-12 | Tool 工具模块 | `feature/course-tools` | 实现选题推荐、数据库设计、接口设计、项目结构、报告大纲、答辩准备与时间工具 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 
 ## 7. 当前下一步
 
 建议下一步执行：
 
 ```text
-第 2 步：RAG 知识库模块
-建议分支：feature/rag-knowledge-base
-下一步动作：等待用户确认后，将 feature/rag-knowledge-base 推送并准备合并到 main
+第 3 步：Tool 工具模块
+建议分支：feature/course-tools
+下一步动作：等待用户确认后，将 feature/course-tools 推送并准备合并到 main
 ```
 
 执行前需要用户确认。

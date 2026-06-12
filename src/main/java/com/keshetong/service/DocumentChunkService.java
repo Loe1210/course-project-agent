@@ -25,7 +25,7 @@ public class DocumentChunkService {
     public List<DocumentChunk> chunkDocument(String content, String filePath) {
         List<DocumentChunk> chunks = new ArrayList<>();
         if (content == null || content.trim().isEmpty()) {
-            logger.warn("Document content is empty: {}", filePath);
+            logger.warn("文档内容为空：{}", filePath);
             return chunks;
         }
 
@@ -37,7 +37,7 @@ public class DocumentChunkService {
             globalChunkIndex += sectionChunks.size();
         }
 
-        logger.info("Chunked document {} into {} pieces", filePath, chunks.size());
+        logger.info("文档 {} 已切分为 {} 个分片", filePath, chunks.size());
         return chunks;
     }
 

@@ -62,7 +62,7 @@ public class VectorIndexService {
             Path dirPath = Paths.get(targetPath).normalize();
             File directory = dirPath.toFile();
             if (!directory.exists() || !directory.isDirectory()) {
-                throw new IllegalArgumentException("Directory does not exist: " + targetPath);
+                throw new IllegalArgumentException("目录不存在：" + targetPath);
             }
             result.setDirectoryPath(directory.getAbsolutePath());
 
@@ -89,7 +89,7 @@ public class VectorIndexService {
             result.setEndTime(LocalDateTime.now());
             return result;
         } catch (Exception e) {
-            logger.error("Failed to index directory", e);
+            logger.error("批量建立知识库索引失败", e);
             result.setSuccess(false);
             result.setErrorMessage(e.getMessage());
             result.setEndTime(LocalDateTime.now());
@@ -101,7 +101,7 @@ public class VectorIndexService {
         Path path = Paths.get(filePath).normalize();
         File file = path.toFile();
         if (!file.exists() || !file.isFile()) {
-            throw new IllegalArgumentException("File does not exist: " + filePath);
+            throw new IllegalArgumentException("文件不存在：" + filePath);
         }
 
         String content = Files.readString(path);
@@ -129,7 +129,7 @@ public class VectorIndexService {
                     .build();
             milvusClient.delete(deleteParam);
         } catch (Exception e) {
-            logger.warn("Skip deleting existing vector data: {}", e.getMessage());
+            logger.warn("跳过删除历史向量数据：{}", e.getMessage());
         }
     }
 
@@ -162,7 +162,7 @@ public class VectorIndexService {
                             .build()
             );
             if (loadResponse.getStatus() != 0 && loadResponse.getStatus() != 65535) {
-                throw new RuntimeException("Failed to load collection: " + loadResponse.getMessage());
+                throw new RuntimeException("加载 Milvus 集合失败：" + loadResponse.getMessage());
             }
 
             String source = (String) metadata.get("_source");
@@ -181,10 +181,10 @@ public class VectorIndexService {
 
             R<MutationResult> response = milvusClient.insert(insertParam);
             if (response.getStatus() != 0) {
-                throw new RuntimeException("Failed to insert vector: " + response.getMessage());
+                throw new RuntimeException("写入向量数据失败：" + response.getMessage());
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to insert chunk into Milvus: " + e.getMessage(), e);
+            throw new RuntimeException("写入文档分片到 Milvus 失败：" + e.getMessage(), e);
         }
     }
 

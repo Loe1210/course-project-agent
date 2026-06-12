@@ -62,12 +62,12 @@ public class FileUploadController {
             }
 
             Files.copy(file.getInputStream(), filePath);
-            logger.info("Uploaded knowledge file {}", filePath);
+            logger.info("已上传知识库文件：{}", filePath);
 
             try {
                 vectorIndexService.indexSingleFile(filePath.toString());
             } catch (Exception e) {
-                logger.error("Knowledge indexing failed for {}", filePath, e);
+                logger.error("知识库文件入库失败：{}", filePath, e);
             }
 
             return ResponseEntity.ok(ApiResponse.success(

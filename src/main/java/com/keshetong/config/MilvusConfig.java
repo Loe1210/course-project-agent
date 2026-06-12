@@ -21,9 +21,9 @@ public class MilvusConfig {
     public MilvusServiceClient milvusServiceClient(ObjectProvider<com.keshetong.client.MilvusClientFactory> factoryProvider) {
         var factory = factoryProvider.getIfAvailable();
         if (factory == null) {
-            throw new IllegalStateException("MilvusClientFactory is not available");
+            throw new IllegalStateException("MilvusClientFactory 不可用");
         }
-        logger.info("Initializing Milvus client");
+        logger.info("正在初始化 Milvus 客户端");
         milvusClient = factory.createClient();
         return milvusClient;
     }
@@ -31,7 +31,7 @@ public class MilvusConfig {
     @PreDestroy
     public void cleanup() {
         if (milvusClient != null) {
-            logger.info("Closing Milvus client");
+            logger.info("正在关闭 Milvus 客户端");
             milvusClient.close();
         }
     }

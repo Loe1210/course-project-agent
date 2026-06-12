@@ -56,7 +56,7 @@ public class VectorSearchService {
 
             R<SearchResults> response = milvusClient.search(searchParam);
             if (response.getStatus() != 0) {
-                throw new RuntimeException("Milvus search failed: " + response.getMessage());
+                throw new RuntimeException("Milvus 检索失败：" + response.getMessage());
             }
 
             SearchResultsWrapper wrapper = new SearchResultsWrapper(response.getData().getResults());
@@ -74,8 +74,8 @@ public class VectorSearchService {
             }
             return results;
         } catch (Exception e) {
-            logger.error("Failed to search vector knowledge", e);
-            throw new RuntimeException("Failed to search vector knowledge: " + e.getMessage(), e);
+            logger.error("检索向量知识库失败", e);
+            throw new RuntimeException("检索向量知识库失败：" + e.getMessage(), e);
         }
     }
 

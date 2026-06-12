@@ -18,6 +18,8 @@
 7. 用户确认后再合并到主分支。
 8. 合并主分支后再进入下一个模块。
 9. 每完成一步都要更新本文档。
+10. 代码中的提示词、报错、日志、接口返回描述统一使用中文。
+11. 课设通 Agent 对外问答统一使用中文。
 
 ## 2. Git 分支规范
 
@@ -52,7 +54,7 @@ fix: repair course project stream response
 |---|---|---|---|
 | 0 | 仓库与工程基线模块 | `chore/repo-baseline` | 已合并 |
 | 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 已合并 |
-| 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 待推送 |
+| 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 已合并 |
 | 3 | Tool 工具模块 | `feature/course-tools` | 未开始 |
 | 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 未开始 |
 | 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 未开始 |
@@ -572,6 +574,7 @@ release/course-project-agent-v1
 | 2026-06-11 | 项目脚手架与配置模块 | `feature/project-scaffold` | 创建 Spring Boot Maven 基础工程与健康检查接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-11 | 项目脚手架与配置模块 | `main` | 合并 feature/project-scaffold | 已完成 |
 | 2026-06-11 | RAG 知识库模块 | `feature/rag-knowledge-base` | 实现知识库文档、上传、分片、向量化、Milvus 检索和知识库工具 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
+| 2026-06-11 | 中文化修正规范 | `feature/chinese-message-standardization` | 统一 RAG 模块提示词、报错、日志与 Agent 问答语言为中文 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 
 ## 7. 当前下一步
 

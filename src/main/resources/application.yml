@@ -59,3 +59,8 @@ course-project:
     - Spring Boot
     - Vue
     - MySQL
+
+course-chat:
+  max-history-messages: 12
+  enable-tools: true
+  default-conversation-prefix: course-chat

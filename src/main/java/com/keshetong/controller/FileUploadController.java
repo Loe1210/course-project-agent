@@ -36,18 +36,18 @@ public class FileUploadController {
     @PostMapping(value = "/api/upload", consumes = "multipart/form-data")
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("文件不能为空"));
+            return ResponseEntity.badRequest().body(ApiResponse.badRequest("文件不能为空"));
         }
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || originalFilename.isEmpty()) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("文件名不能为空"));
+            return ResponseEntity.badRequest().body(ApiResponse.badRequest("文件名不能为空"));
         }
 
         String fileExtension = getFileExtension(originalFilename);
         if (!isAllowedExtension(fileExtension)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("不支持的文件格式，仅支持: " + fileUploadConfig.getAllowedExtensions()));
+                    .body(ApiResponse.badRequest("不支持的文件格式，仅支持: " + fileUploadConfig.getAllowedExtensions()));
         }
 
         try {

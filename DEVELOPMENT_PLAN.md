@@ -59,7 +59,7 @@ fix: repair course project stream response
 | 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 已合并 |
 | 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 已合并 |
 | 6 | 课设产物生成模块 | `feature/artifact-generation` | 待合并 |
-| 7 | 前端课设工作台模块 | `feature/course-workbench-ui` | 检查中 |
+| 7 | 前端课设工作台模块 | `feature/course-workbench-ui` | 待合并 |
 | 8 | 联调与验收模块 | `feature/integration-acceptance` | 未开始 |
 | 9 | 文档与发布模块 | `release/course-project-agent-v1` | 未开始 |
 
@@ -594,7 +594,7 @@ feature/course-workbench-ui
 当前状态：
 
 ```text
-检查中
+待合并
 ```
 
 开发记录：
@@ -630,6 +630,7 @@ feature/course-workbench-ui
 覆盖内容：工具模块 smoke test、产物控制器测试、产物服务测试、对话控制器测试、课设任务控制器测试、会话记忆测试、任务 Agent 基础测试、Spring Boot 上下文启动、文档分片单元测试
 说明：前端所有界面文案、按钮文案、错误提示和状态提示均为中文
 说明：真实大模型对话、RAG 检索与 Milvus 联调留到“联调与验收模块”统一验证
+推送状态：feature/course-workbench-ui 已推送到 origin/feature/course-workbench-ui
 ```
 
 ### 8. 联调与验收模块

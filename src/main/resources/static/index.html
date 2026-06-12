@@ -4,11 +4,195 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>课设通 Agent 助手</title>
+    <link rel="stylesheet" href="/app.css">
 </head>
 <body>
-<main>
-    <h1>课设通 Agent 助手</h1>
-    <p>项目脚手架已启动。后续模块会逐步接入 ReAct 对话 Agent、PAR 课设任务 Agent、RAG 和工具调用。</p>
-</main>
+<div class="app-shell">
+    <aside class="sidebar-left">
+        <div class="brand-block">
+            <div class="brand-mark">K</div>
+            <div class="brand-text">
+                <h1>课设通 Agent 助手</h1>
+                <p>软件课设工作台</p>
+            </div>
+        </div>
+
+        <section class="sidebar-section">
+            <div class="section-title">工作模式</div>
+            <div class="nav-list" id="mode-nav">
+                <button class="nav-item active" data-mode="chat">
+                    <span class="nav-item-title">课设对话</span>
+                    <span class="nav-item-desc">自由提问与连续追问</span>
+                </button>
+                <button class="nav-item" data-mode="project">
+                    <span class="nav-item-title">完整方案</span>
+                    <span class="nav-item-desc">生成整套课设方案</span>
+                </button>
+                <button class="nav-item" data-mode="artifact">
+                    <span class="nav-item-title">产物生成</span>
+                    <span class="nav-item-desc">单独生成数据库、接口、报告等</span>
+                </button>
+                <button class="nav-item" data-mode="review">
+                    <span class="nav-item-title">方案审查</span>
+                    <span class="nav-item-desc">检查现有方案完整性</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="sidebar-section">
+            <div class="section-title">快捷操作</div>
+            <div class="quick-actions">
+                <button class="ghost-button" id="quick-second-hand">校园二手交易平台</button>
+                <button class="ghost-button" id="quick-score-system">学生成绩管理系统</button>
+                <button class="ghost-button" id="quick-report">生成报告大纲</button>
+                <button class="ghost-button" id="quick-review">检查方案完整性</button>
+            </div>
+        </section>
+
+        <section class="sidebar-section recent-section">
+            <div class="section-title">最近请求</div>
+            <div class="recent-list" id="recent-list">
+                <div class="empty-hint">还没有历史请求</div>
+            </div>
+        </section>
+    </aside>
+
+    <main class="workspace-main">
+        <header class="workspace-header">
+            <div class="workspace-header-left">
+                <div class="page-eyebrow">Codex 风格课设工作台</div>
+                <h2 id="workspace-title">课设对话</h2>
+            </div>
+            <div class="workspace-header-right">
+                <div class="context-chip" id="current-mode-chip">对话模式</div>
+                <div class="context-chip" id="request-status-chip">待命中</div>
+            </div>
+        </header>
+
+        <section class="context-bar">
+            <label class="context-field">
+                <span>课设题目</span>
+                <input id="topic-input" type="text" placeholder="例如：校园二手交易平台">
+            </label>
+            <label class="context-field">
+                <span>技术方向</span>
+                <input id="direction-input" type="text" placeholder="例如：Java Web / 前后端分离">
+            </label>
+            <label class="context-field">
+                <span>技术栈</span>
+                <input id="tech-stack-input" type="text" placeholder="例如：Spring Boot, Vue, MySQL">
+            </label>
+        </section>
+
+        <section class="main-panel">
+            <div class="panel-toolbar">
+                <div class="panel-toolbar-left">
+                    <div class="toolbar-tab active" id="stream-state-label">主工作区</div>
+                </div>
+                <div class="panel-toolbar-right">
+                    <button class="icon-button" id="copy-main-output" title="复制主输出">复制</button>
+                    <button class="icon-button" id="clear-main-output" title="清空输出">清空</button>
+                </div>
+            </div>
+
+            <div class="main-panel-body">
+                <div class="composer-panel">
+                    <label class="composer-field" id="primary-label">
+                        <span>输入内容</span>
+                        <textarea id="primary-input" placeholder="在这里输入你的课设问题、需求说明或待审查内容"></textarea>
+                    </label>
+                    <label class="composer-field secondary-field" id="secondary-field">
+                        <span id="secondary-label">补充说明</span>
+                        <textarea id="secondary-input" placeholder="补充产物类型、额外要求或已有方案"></textarea>
+                    </label>
+
+                    <div class="mode-specific-row" id="artifact-options-row">
+                        <label class="inline-field">
+                            <span>产物类型</span>
+                            <select id="artifact-type-select">
+                                <option value="database_design">数据库设计</option>
+                                <option value="api_design">接口设计</option>
+                                <option value="project_structure">项目结构</option>
+                                <option value="report_outline">报告大纲</option>
+                                <option value="report_draft">报告初稿</option>
+                                <option value="test_cases">测试用例</option>
+                                <option value="defense_qa">答辩问答</option>
+                            </select>
+                        </label>
+                        <label class="inline-field" id="review-type-wrapper">
+                            <span>审查类型</span>
+                            <select id="review-type-select">
+                                <option value="completeness">完整性审查</option>
+                                <option value="llm_review">大模型审查</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="action-row">
+                        <button class="primary-button" id="submit-button">发送请求</button>
+                        <button class="secondary-button" id="stream-button">流式生成</button>
+                        <button class="secondary-button" id="reset-form-button">重置表单</button>
+                    </div>
+                </div>
+
+                <div class="output-panel">
+                    <div class="output-scroll" id="main-output">
+                        <div class="empty-state">
+                            <h3>欢迎来到课设通工作台</h3>
+                            <p>从左侧切换模式，在中间输入课设题目、需求和问题，右侧会持续沉淀结构化成果。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <aside class="sidebar-right">
+        <section class="result-card">
+            <div class="result-card-header">
+                <div>
+                    <div class="section-title">当前请求摘要</div>
+                    <p class="section-subtitle">同步显示当前上下文与请求参数</p>
+                </div>
+            </div>
+            <div class="summary-grid" id="summary-grid">
+                <div class="summary-item">
+                    <span class="summary-label">模式</span>
+                    <span class="summary-value" id="summary-mode">课设对话</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">题目</span>
+                    <span class="summary-value" id="summary-topic">未填写</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">方向</span>
+                    <span class="summary-value" id="summary-direction">未填写</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">技术栈</span>
+                    <span class="summary-value" id="summary-tech-stack">未填写</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="result-card">
+            <div class="result-card-header">
+                <div>
+                    <div class="section-title">结构化结果</div>
+                    <p class="section-subtitle">点击条目在下方查看详情</p>
+                </div>
+                <button class="icon-button" id="copy-side-output" title="复制右侧结果">复制</button>
+            </div>
+            <div class="result-index" id="result-index">
+                <div class="empty-hint">生成完成后，这里会显示结构化条目。</div>
+            </div>
+            <div class="result-detail markdown-body" id="result-detail">
+                <div class="empty-hint">右侧详情区等待结果填充。</div>
+            </div>
+        </section>
+    </aside>
+</div>
+
+<script src="/app.js"></script>
 </body>
 </html>

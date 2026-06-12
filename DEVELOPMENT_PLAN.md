@@ -58,8 +58,8 @@ fix: repair course project stream response
 | 3 | Tool 工具模块 | `feature/course-tools` | 已合并 |
 | 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 已合并 |
 | 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 已合并 |
-| 6 | 课设产物生成模块 | `feature/artifact-generation` | 待推送 |
-| 7 | 前端课设工作台模块 | `feature/course-workbench-ui` | 未开始 |
+| 6 | 课设产物生成模块 | `feature/artifact-generation` | 待合并 |
+| 7 | 前端课设工作台模块 | `feature/course-workbench-ui` | 检查中 |
 | 8 | 联调与验收模块 | `feature/integration-acceptance` | 未开始 |
 | 9 | 文档与发布模块 | `release/course-project-agent-v1` | 未开始 |
 
@@ -525,7 +525,7 @@ feature/artifact-generation
 当前状态：
 
 ```text
-待推送
+待合并
 ```
 
 开发记录：
@@ -557,6 +557,7 @@ feature/artifact-generation
 测试明细：Tests run: 18, Failures: 0, Errors: 0, Skipped: 0
 覆盖内容：工具模块 smoke test、产物控制器测试、产物服务测试、对话控制器测试、课设任务控制器测试、会话记忆测试、任务 Agent 基础测试、Spring Boot 上下文启动、文档分片单元测试
 说明：产物生成与审查接口的返回和异常文案均为中文
+补充说明：该模块分支已推送到远程，但尚未单独合并回 main；当前已合并进入 feature/course-workbench-ui，供前端工作台联调使用
 ```
 
 ### 7. 前端课设工作台模块
@@ -593,7 +594,42 @@ feature/course-workbench-ui
 当前状态：
 
 ```text
-未开始
+检查中
+```
+
+开发记录：
+
+```text
+开发时间：2026-06-12
+开发分支：feature/course-workbench-ui
+已重构：src/main/resources/static/index.html 为三栏式课设工作台
+已创建：src/main/resources/static/app.css
+已创建：src/main/resources/static/app.js
+已实现：课设对话 / 完整方案 / 产物生成 / 方案审查 四种模式切换
+已实现：最近请求记录与快捷操作
+已实现：右侧结构化结果面板
+已实现：普通请求与流式请求前端调用
+已实现：中文状态提示、错误提示和空状态文案
+已联通：/api/course_chat
+已联通：/api/course_chat_stream
+已联通：/api/course_project
+已联通：/api/course_project_stream
+已联通：/api/course_project/artifact
+已联通：/api/course_project/review
+已补充：前端工作台设计文档 docs/superpowers/specs/2026-06-12-course-workbench-ui-design.md
+```
+
+检查结果：
+
+```text
+静态资源检查：通过，首页 / 与 /app.js 返回 200
+测试工具：IDEA 自带 Maven 3.9.11
+测试命令：mvn test
+测试结果：BUILD SUCCESS
+测试明细：Tests run: 18, Failures: 0, Errors: 0, Skipped: 0
+覆盖内容：工具模块 smoke test、产物控制器测试、产物服务测试、对话控制器测试、课设任务控制器测试、会话记忆测试、任务 Agent 基础测试、Spring Boot 上下文启动、文档分片单元测试
+说明：前端所有界面文案、按钮文案、错误提示和状态提示均为中文
+说明：真实大模型对话、RAG 检索与 Milvus 联调留到“联调与验收模块”统一验证
 ```
 
 ### 8. 联调与验收模块

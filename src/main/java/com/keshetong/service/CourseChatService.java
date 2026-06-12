@@ -1,13 +1,5 @@
 package com.keshetong.service;
 
-import com.keshetong.agent.tool.ApiDesignTools;
-import com.keshetong.agent.tool.CourseKnowledgeTools;
-import com.keshetong.agent.tool.DatabaseDesignTools;
-import com.keshetong.agent.tool.DateTimeTools;
-import com.keshetong.agent.tool.DefenseTools;
-import com.keshetong.agent.tool.ProjectTemplateTools;
-import com.keshetong.agent.tool.ReportTools;
-import com.keshetong.agent.tool.TopicRecommendTools;
 import com.keshetong.config.CourseChatProperties;
 import com.keshetong.dto.CourseChatRequest;
 import com.keshetong.dto.CourseChatResponse;
@@ -43,37 +35,16 @@ public class CourseChatService {
     private final ObjectProvider<ChatClient.Builder> chatClientBuilderProvider;
     private final CourseChatProperties courseChatProperties;
     private final CourseChatMemoryService memoryService;
-    private final TopicRecommendTools topicRecommendTools;
-    private final DatabaseDesignTools databaseDesignTools;
-    private final ApiDesignTools apiDesignTools;
-    private final ProjectTemplateTools projectTemplateTools;
-    private final ReportTools reportTools;
-    private final DefenseTools defenseTools;
-    private final DateTimeTools dateTimeTools;
-    private final CourseKnowledgeTools courseKnowledgeTools;
+    private final CourseAgentToolRegistry toolRegistry;
 
     public CourseChatService(ObjectProvider<ChatClient.Builder> chatClientBuilderProvider,
                              CourseChatProperties courseChatProperties,
                              CourseChatMemoryService memoryService,
-                             TopicRecommendTools topicRecommendTools,
-                             DatabaseDesignTools databaseDesignTools,
-                             ApiDesignTools apiDesignTools,
-                             ProjectTemplateTools projectTemplateTools,
-                             ReportTools reportTools,
-                             DefenseTools defenseTools,
-                             DateTimeTools dateTimeTools,
-                             CourseKnowledgeTools courseKnowledgeTools) {
+                             CourseAgentToolRegistry toolRegistry) {
         this.chatClientBuilderProvider = chatClientBuilderProvider;
         this.courseChatProperties = courseChatProperties;
         this.memoryService = memoryService;
-        this.topicRecommendTools = topicRecommendTools;
-        this.databaseDesignTools = databaseDesignTools;
-        this.apiDesignTools = apiDesignTools;
-        this.projectTemplateTools = projectTemplateTools;
-        this.reportTools = reportTools;
-        this.defenseTools = defenseTools;
-        this.dateTimeTools = dateTimeTools;
-        this.courseKnowledgeTools = courseKnowledgeTools;
+        this.toolRegistry = toolRegistry;
     }
 
     public CourseChatResponse chat(CourseChatRequest request) {
@@ -136,16 +107,7 @@ public class CourseChatService {
                 .messages(messages);
 
         if (shouldUseTools(request)) {
-            requestSpec = requestSpec.tools(
-                    topicRecommendTools,
-                    databaseDesignTools,
-                    apiDesignTools,
-                    projectTemplateTools,
-                    reportTools,
-                    defenseTools,
-                    dateTimeTools,
-                    courseKnowledgeTools
-            );
+            requestSpec = requestSpec.tools(toolRegistry.allTools());
         }
 
         return requestSpec;

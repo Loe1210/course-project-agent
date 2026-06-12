@@ -56,8 +56,8 @@ fix: repair course project stream response
 | 1 | 项目脚手架与配置模块 | `feature/project-scaffold` | 已合并 |
 | 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 已合并 |
 | 3 | Tool 工具模块 | `feature/course-tools` | 已合并 |
-| 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 待推送 |
-| 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 未开始 |
+| 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 已合并 |
+| 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 待推送 |
 | 6 | 课设产物生成模块 | `feature/artifact-generation` | 未开始 |
 | 7 | 前端课设工作台模块 | `feature/course-workbench-ui` | 未开始 |
 | 8 | 联调与验收模块 | `feature/integration-acceptance` | 未开始 |
@@ -306,7 +306,7 @@ feature/course-tools
 当前状态：
 
 ```text
-待推送
+已合并
 ```
 
 开发记录：
@@ -370,7 +370,7 @@ feature/course-chat-agent
 当前状态：
 
 ```text
-待推送
+已合并
 ```
 
 开发记录：
@@ -457,7 +457,39 @@ course_project_supervisor
 当前状态：
 
 ```text
-未开始
+待推送
+```
+
+开发记录：
+
+```text
+开发时间：2026-06-12
+开发分支：feature/course-project-agent
+已创建：CourseProjectAgentProperties 任务 Agent 配置
+已创建：CourseProjectRequest / CourseProjectResponse
+已创建：CourseAgentToolRegistry 共享工具注册表
+已创建：CourseProjectAgentService
+已创建：CourseProjectController
+已实现：Supervisor -> Planner -> Executor 三阶段中文 Prompt
+已集成：RAG 知识库工具与本地课设工具
+已支持：/api/course_project
+已支持：/api/course_project_stream
+已支持：基于 requestId 的任务请求编号生成
+已创建：CourseProjectControllerTests
+已创建：CourseProjectAgentServiceTests
+已补充：application.yml 中的 course-project-agent 配置
+已优化：统一工具注入方式，CourseChatService 改为复用 CourseAgentToolRegistry
+```
+
+检查结果：
+
+```text
+测试工具：IDEA 自带 Maven 3.9.11
+测试命令：mvn test
+测试结果：BUILD SUCCESS
+测试明细：Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+覆盖内容：工具模块 smoke test、对话控制器测试、课设任务控制器测试、会话记忆测试、任务 Agent 基础测试、Spring Boot 上下文启动、文档分片单元测试
+说明：PAR 任务 Agent 的 Prompt、接口返回和异常文案均为中文
 ```
 
 ### 6. 课设产物生成模块
@@ -636,15 +668,16 @@ release/course-project-agent-v1
 | 2026-06-11 | 中文化修正规范 | `feature/chinese-message-standardization` | 统一 RAG 模块提示词、报错、日志与 Agent 问答语言为中文 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-12 | Tool 工具模块 | `feature/course-tools` | 实现选题推荐、数据库设计、接口设计、项目结构、报告大纲、答辩准备与时间工具 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-12 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 实现中文课设对话 Agent、流式接口、工具调用与本地会话记忆 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
+| 2026-06-12 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 实现 Supervisor、Planner、Executor 三阶段课设方案生成与流式接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 
 ## 7. 当前下一步
 
 建议下一步执行：
 
 ```text
-第 4 步：ReAct 课设对话 Agent 模块
-建议分支：feature/course-chat-agent
-下一步动作：等待用户确认后，将 feature/course-chat-agent 推送并准备合并到 main
+第 5 步：PAR 课设任务 Agent 模块
+建议分支：feature/course-project-agent
+下一步动作：等待用户确认后，将 feature/course-project-agent 推送并准备合并到 main
 ```
 
 执行前需要用户确认。

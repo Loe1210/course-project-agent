@@ -60,8 +60,9 @@ fix: repair course project stream response
 | 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 已合并 |
 | 6 | 课设产物生成模块 | `feature/artifact-generation` | 待合并 |
 | 7 | 前端课设工作台模块 | `feature/course-workbench-ui` | 待合并 |
-| 8 | 联调与验收模块 | `feature/integration-acceptance` | 未开始 |
-| 9 | 文档与发布模块 | `release/course-project-agent-v1` | 未开始 |
+| 8 | 文档能力增强与 MCP 模块 | `feature/document-mcp-enhancement` | 计划中 |
+| 9 | 联调与验收模块 | `feature/integration-acceptance` | 未开始 |
+| 10 | 文档与发布模块 | `release/course-project-agent-v1` | 未开始 |
 
 状态取值：
 
@@ -633,7 +634,57 @@ feature/course-workbench-ui
 推送状态：feature/course-workbench-ui 已推送到 origin/feature/course-workbench-ui
 ```
 
-### 8. 联调与验收模块
+### 8. 文档能力增强与 MCP 模块
+
+分支：
+
+```text
+feature/document-mcp-enhancement
+```
+
+目标：
+
+为课设通补齐 `docx/pdf/md/txt` 文档统一接入、`docx` 报告导出，以及独立文档 MCP 服务层，打通“课设资料上传增强知识库”和“报告成果下载交付”的完整闭环。
+
+计划内容：
+
+1. 新增 `document-mcp-server` 目录和基础运行骨架。
+2. 接入成熟文档工具实现统一解析能力。
+3. 实现 `parse_document` MCP 工具，支持 `docx/pdf/md/txt` 转 Markdown 或纯文本。
+4. 实现 `export_report_docx` MCP 工具，支持报告内容导出为 Word 文件。
+5. 改造课设通知识库上传链路，上传后先走文档解析，再进入分片、向量化、Milvus 入库。
+6. 改造课设产物生成链路，支持报告导出下载。
+7. 更新前端上传提示、知识库说明和报告下载入口。
+8. 补充本轮模块测试与联调检查。
+
+验收标准：
+
+1. 支持上传 `.txt`、`.md`、`.docx`、`.pdf` 文档。
+2. 上传后的文档可被统一解析并进入现有 RAG 链路。
+3. 报告大纲或报告正文可导出为 `.docx` 文件。
+4. 主服务通过 MCP 工具调用文档能力，而不是直接强耦合到具体文档解析库。
+5. 提示词、报错、日志、接口返回描述保持中文。
+
+当前状态：
+
+```text
+计划中
+```
+
+设计决策：
+
+```text
+设计时间：2026-06-13
+开发分支：feature/document-mcp-enhancement
+文档解析内核：优先采用成熟开源工具 MarkItDown
+报告导出内核：采用 Apache POI 生成 docx 文件
+接入方式：新增独立 document-mcp-server，对主服务暴露 parse_document 和 export_report_docx 两个核心工具
+主服务职责：负责上传接口、RAG 分片与向量化、PAR 流程、产物生成主链路
+MCP 服务职责：负责文档解析与 Word 导出，降低主服务与具体文档库的耦合
+本轮策略：先做可跑通的本地 MCP 文档服务，再进入联调与验收模块
+```
+
+### 9. 联调与验收模块
 
 分支：
 
@@ -669,7 +720,7 @@ feature/integration-acceptance
 未开始
 ```
 
-### 9. 文档与发布模块
+### 10. 文档与发布模块
 
 分支：
 
@@ -738,15 +789,14 @@ release/course-project-agent-v1
 | 2026-06-12 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 实现中文课设对话 Agent、流式接口、工具调用与本地会话记忆 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-12 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 实现 Supervisor、Planner、Executor 三阶段课设方案生成与流式接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-12 | 课设产物生成模块 | `feature/artifact-generation` | 实现单产物生成与完整性审查接口，支持报告初稿、测试用例与答辩问答生成 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
+| 2026-06-13 | 文档能力增强与 MCP 模块 | `feature/document-mcp-enhancement` | 确认采用“成熟文档工具 + 自建 document-mcp-server”的增强方案并创建功能分支 | 已完成，进入设计落档与开发准备 |
 
 ## 7. 当前下一步
 
 建议下一步执行：
 
 ```text
-第 6 步：课设产物生成模块
-建议分支：feature/artifact-generation
-下一步动作：等待用户确认后，将 feature/artifact-generation 推送并准备合并到 main
+第 8 步：文档能力增强与 MCP 模块
+建议分支：feature/document-mcp-enhancement
+下一步动作：补充 document-mcp-server 设计文档，并开始实现 docx/pdf 统一解析、RAG 接入和 docx 报告导出
 ```
-
-执行前需要用户确认。

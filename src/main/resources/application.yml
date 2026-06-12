@@ -64,3 +64,7 @@ course-chat:
   max-history-messages: 12
   enable-tools: true
   default-conversation-prefix: course-chat
+
+course-project-agent:
+  enable-tools: true
+  default-request-prefix: course-project

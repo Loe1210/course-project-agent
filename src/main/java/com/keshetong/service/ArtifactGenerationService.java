@@ -11,6 +11,8 @@ import com.keshetong.dto.ArtifactGenerationRequest;
 import com.keshetong.dto.ArtifactGenerationResponse;
 import com.keshetong.dto.ArtifactReviewRequest;
 import com.keshetong.dto.ArtifactReviewResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import java.util.UUID;
 
 @Service
 public class ArtifactGenerationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ArtifactGenerationService.class);
 
     private static final String REPORT_DRAFT_PROMPT = """
             你是“课设通 Agent 助手”的产物生成 Agent。
@@ -52,6 +56,7 @@ public class ArtifactGenerationService {
     private final ProjectTemplateTools projectTemplateTools;
     private final ReportTools reportTools;
     private final DefenseTools defenseTools;
+    private final DocumentGateway documentGateway;
 
     public ArtifactGenerationService(ObjectProvider<ChatClient.Builder> chatClientBuilderProvider,
                                      ArtifactGenerationProperties properties,
@@ -60,7 +65,8 @@ public class ArtifactGenerationService {
                                      ApiDesignTools apiDesignTools,
                                      ProjectTemplateTools projectTemplateTools,
                                      ReportTools reportTools,
-                                     DefenseTools defenseTools) {
+                                     DefenseTools defenseTools,
+                                     DocumentGateway documentGateway) {
         this.chatClientBuilderProvider = chatClientBuilderProvider;
         this.properties = properties;
         this.courseProjectProperties = courseProjectProperties;
@@ -69,6 +75,7 @@ public class ArtifactGenerationService {
         this.projectTemplateTools = projectTemplateTools;
         this.reportTools = reportTools;
         this.defenseTools = defenseTools;
+        this.documentGateway = documentGateway;
     }
 
     public ArtifactGenerationResponse generateArtifact(ArtifactGenerationRequest request) {
@@ -87,7 +94,22 @@ public class ArtifactGenerationService {
             case "defense_qa" -> defenseTools.generateDefensePreparation(topic, "答辩准备");
             default -> throw new IllegalArgumentException("不支持的产物类型：" + request.getArtifactType());
         };
-        return new ArtifactGenerationResponse(requestId, topic, artifactType, content);
+        DocumentGateway.ExportedDocumentResult exportedDocument = null;
+        if (artifactType.startsWith("report_")) {
+            exportedDocument = tryExportReport(topic, artifactType, content);
+        }
+        if (exportedDocument == null) {
+            return new ArtifactGenerationResponse(requestId, topic, artifactType, content);
+        }
+        return new ArtifactGenerationResponse(
+                requestId,
+                topic,
+                artifactType,
+                content,
+                exportedDocument.fileName(),
+                exportedDocument.filePath(),
+                exportedDocument.downloadUrl()
+        );
     }
 
     public ArtifactReviewResponse reviewArtifact(ArtifactReviewRequest request) {
@@ -247,6 +269,16 @@ public class ArtifactGenerationService {
                 .user(userPrompt)
                 .call()
                 .content();
+    }
+
+    private DocumentGateway.ExportedDocumentResult tryExportReport(String topic, String artifactType, String content) {
+        try {
+            String title = "课设报告导出 - " + topic;
+            return documentGateway.exportReportDocx(topic, artifactType, title, content);
+        } catch (Exception e) {
+            logger.warn("导出 Word 报告失败：{}", e.getMessage());
+            return null;
+        }
     }
 
     private String resolveTopic(String topic) {

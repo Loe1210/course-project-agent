@@ -28,7 +28,7 @@
 因此本轮采用：
 
 - 文档解析：`MarkItDown`
-- Word 导出：`Apache POI`
+- Word 导出：当前落地采用 `python-docx`
 - MCP 服务层：我们自己实现 `document-mcp-server`
 
 ## 3. 架构设计
@@ -69,7 +69,7 @@
 
 `export_report_docx`
 
-- 输入：报告标题、章节内容、可选模板路径、输出目录
+- 输入：报告标题、章节内容、输出目录
 - 输出：生成的 docx 路径、文件名、状态信息
 
 ## 4. 数据流
@@ -104,18 +104,17 @@
 课设通Agent助手/
 ├── document-mcp-server/
 │   ├── server.py
+│   ├── invoke_tool.py
 │   ├── requirements.txt
-│   ├── tools/
-│   │   ├── parse_document.py
-│   │   └── export_report_docx.py
 │   └── services/
 │       ├── document_parser.py
 │       └── docx_exporter.py
 ├── src/main/java/com/keshetong/
-│   └── mcp/
-│       ├── DocumentMcpClient.java
-│       ├── config/
-│       └── dto/
+│   ├── config/DocumentMcpProperties.java
+│   ├── controller/ArtifactDownloadController.java
+│   └── service/
+│       ├── DocumentGateway.java
+│       └── DocumentMcpClient.java
 ```
 
 ## 6. 错误处理
@@ -138,7 +137,7 @@
 2. 文档解析结果非空测试。
 3. RAG 上传链路在解析后仍可继续分片和入库的服务测试。
 4. `docx` 报告导出文件存在性测试。
-5. MCP 调用异常时的中文错误返回测试。
+5. bridge 调用异常时的中文错误返回测试。
 
 ## 8. 范围边界
 
@@ -156,7 +155,7 @@
 
 1. 搭 `document-mcp-server` 骨架。
 2. 接入 `MarkItDown`，实现 `parse_document`。
-3. 接入 `Apache POI`，实现 `export_report_docx`。
+3. 接入 `python-docx`，实现 `export_report_docx`。
 4. 补主服务 `DocumentMcpClient`。
 5. 改上传链路对接 MCP。
 6. 改报告导出链路对接 MCP。

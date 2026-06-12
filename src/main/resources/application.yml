@@ -28,7 +28,7 @@ spring:
 file:
   upload:
     path: ./uploads
-    allowed-extensions: txt,md
+    allowed-extensions: txt,md,docx,pdf
 
 milvus:
   host: localhost
@@ -48,6 +48,12 @@ document:
   chunk:
     max-size: 800
     overlap: 100
+  mcp:
+    enabled: true
+    python-path: ./.venv-document-mcp/Scripts/python.exe
+    bridge-script-path: ./document-mcp-server/invoke_tool.py
+    output-path: ./generated-reports
+    timeout-ms: 120000
 
 rag:
   top-k: 3

@@ -668,7 +668,7 @@ feature/document-mcp-enhancement
 当前状态：
 
 ```text
-计划中
+检查中
 ```
 
 设计决策：
@@ -677,11 +677,41 @@ feature/document-mcp-enhancement
 设计时间：2026-06-13
 开发分支：feature/document-mcp-enhancement
 文档解析内核：优先采用成熟开源工具 MarkItDown
-报告导出内核：采用 Apache POI 生成 docx 文件
-接入方式：新增独立 document-mcp-server，对主服务暴露 parse_document 和 export_report_docx 两个核心工具
+报告导出内核：当前实现采用 python-docx 生成 docx 文件
+接入方式：新增独立 document-mcp-server，对主服务暴露 parse_document 和 export_report_docx 两个核心工具，同时提供本地 bridge 供主服务调用
 主服务职责：负责上传接口、RAG 分片与向量化、PAR 流程、产物生成主链路
 MCP 服务职责：负责文档解析与 Word 导出，降低主服务与具体文档库的耦合
 本轮策略：先做可跑通的本地 MCP 文档服务，再进入联调与验收模块
+```
+
+开发记录：
+
+```text
+开发时间：2026-06-13
+开发分支：feature/document-mcp-enhancement
+已创建：document-mcp-server/server.py FastMCP 文档服务
+已创建：document-mcp-server/invoke_tool.py 本地 bridge 调用入口
+已创建：document-mcp-server/services/document_parser.py
+已创建：document-mcp-server/services/docx_exporter.py
+已创建：DocumentMcpProperties / DocumentGateway / DocumentMcpClient
+已创建：ArtifactDownloadController
+已改造：知识库上传白名单，支持 txt/md/docx/pdf
+已改造：VectorIndexService 先解析文档，再进入现有分片、向量化、Milvus 链路
+已改造：ArtifactGenerationService 在报告类产物生成后自动导出 docx 并返回下载地址
+已改造：前端知识库提示文案与单项报告产物下载入口
+已补充：本地 Python 虚拟环境 .venv-document-mcp 与 document-mcp-server/requirements.txt
+```
+
+检查结果：
+
+```text
+后端测试工具：IDEA 自带 Maven 3.9.11
+测试命令：mvn test
+测试结果：BUILD SUCCESS
+测试明细：Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
+额外检查：document-mcp-server 解析 md 文档成功
+额外检查：document-mcp-server 导出 docx 文件成功
+说明：当前主服务通过本地 bridge 调用同一套文档工具实现，FastMCP server 已一并落地，后续可在联调模块切换为标准 MCP transport
 ```
 
 ### 9. 联调与验收模块
@@ -790,6 +820,7 @@ release/course-project-agent-v1
 | 2026-06-12 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 实现 Supervisor、Planner、Executor 三阶段课设方案生成与流式接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-12 | 课设产物生成模块 | `feature/artifact-generation` | 实现单产物生成与完整性审查接口，支持报告初稿、测试用例与答辩问答生成 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-13 | 文档能力增强与 MCP 模块 | `feature/document-mcp-enhancement` | 确认采用“成熟文档工具 + 自建 document-mcp-server”的增强方案并创建功能分支 | 已完成，进入设计落档与开发准备 |
+| 2026-06-13 | 文档能力增强与 MCP 模块 | `feature/document-mcp-enhancement` | 实现文档解析 bridge、FastMCP 文档服务、RAG 接入、报告 docx 导出与前端下载入口 | 本地完成，mvn test 通过，等待推送 |
 
 ## 7. 当前下一步
 
@@ -798,5 +829,5 @@ release/course-project-agent-v1
 ```text
 第 8 步：文档能力增强与 MCP 模块
 建议分支：feature/document-mcp-enhancement
-下一步动作：补充 document-mcp-server 设计文档，并开始实现 docx/pdf 统一解析、RAG 接入和 docx 报告导出
+下一步动作：将当前模块实现提交并推送到 GitHub 对应分支，等待用户确认是否继续补联调或准备后续合并
 ```

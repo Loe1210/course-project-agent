@@ -35,7 +35,7 @@ class FileUploadControllerTests {
                 "课程设计任务书".getBytes()
         );
 
-        Mockito.when(fileUploadConfig.getAllowedExtensions()).thenReturn("txt,md");
+        Mockito.when(fileUploadConfig.getAllowedExtensions()).thenReturn("txt,md,docx,pdf");
         Mockito.when(fileUploadConfig.getPath()).thenReturn("target/test-uploads");
         Mockito.when(vectorIndexService.indexSingleFile(Mockito.anyString()))
                 .thenReturn(new VectorIndexService.SingleFileIndexingResult(true, "target/test-uploads/task.txt", 3, "知识库入库成功"));
@@ -57,7 +57,7 @@ class FileUploadControllerTests {
                 "课程设计任务书".getBytes()
         );
 
-        Mockito.when(fileUploadConfig.getAllowedExtensions()).thenReturn("txt,md");
+        Mockito.when(fileUploadConfig.getAllowedExtensions()).thenReturn("txt,md,docx,pdf");
         Mockito.when(fileUploadConfig.getPath()).thenReturn("target/test-uploads");
         Mockito.when(vectorIndexService.indexSingleFile(Mockito.anyString()))
                 .thenThrow(new RuntimeException("Milvus 未启动"));

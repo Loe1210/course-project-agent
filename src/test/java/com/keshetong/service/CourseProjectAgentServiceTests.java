@@ -64,7 +64,8 @@ class CourseProjectAgentServiceTests {
                 new ApiDesignTools(supportService),
                 new ProjectTemplateTools(supportService),
                 new ReportTools(supportService),
-                new DefenseTools(supportService)
+                new DefenseTools(supportService),
+                new StubDocumentGateway()
         );
     }
 
@@ -90,5 +91,18 @@ class CourseProjectAgentServiceTests {
                 return null;
             }
         };
+    }
+
+    private static class StubDocumentGateway implements DocumentGateway {
+
+        @Override
+        public DocumentGateway.ParsedDocumentResult parseDocument(String filePath) {
+            return new DocumentGateway.ParsedDocumentResult("测试文档", "测试内容", "测试内容", "txt");
+        }
+
+        @Override
+        public DocumentGateway.ExportedDocumentResult exportReportDocx(String topic, String artifactType, String title, String content) {
+            return new DocumentGateway.ExportedDocumentResult("report.docx", "target/report.docx", "/api/course_project/artifact/download/report.docx");
+        }
     }
 }

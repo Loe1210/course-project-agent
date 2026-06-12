@@ -300,8 +300,15 @@
             appendUserMessage("请单独生成：" + readableArtifactType(artifactType));
             const response = await requestJson("/api/course_project/artifact", payload);
             const title = readableArtifactType(response.data.artifactType);
-            appendMessage("assistant", title, response.data.content);
-            setStructuredResults([{ key: title, content: response.data.content }]);
+            const content = response.data.downloadUrl
+                ? `${response.data.content}\n\n[下载 Word 文件](${response.data.downloadUrl})`
+                : response.data.content;
+            appendMessage("assistant", title, content);
+            const structuredResults = [{ key: title, content: response.data.content }];
+            if (response.data.downloadUrl) {
+                structuredResults.push({ key: "Word 下载", content: response.data.downloadUrl });
+            }
+            setStructuredResults(structuredResults);
             addRecentRequest("单项产物", title + " / " + payload.topic);
             openDrawer("results");
             setStatus("已完成", "status-success");

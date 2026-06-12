@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class FileUploadController {
@@ -112,7 +113,10 @@ public class FileUploadController {
         if (allowedExtensions == null || allowedExtensions.isEmpty()) {
             return false;
         }
-        List<String> allowedList = Arrays.asList(allowedExtensions.split(","));
+        List<String> allowedList = Arrays.stream(allowedExtensions.split(","))
+                .map(String::trim)
+                .filter(item -> !item.isEmpty())
+                .collect(Collectors.toList());
         return allowedList.contains(extension.toLowerCase());
     }
 }

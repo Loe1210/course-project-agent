@@ -36,7 +36,8 @@ class ArtifactGenerationServiceTests {
                 new ApiDesignTools(supportService),
                 new ProjectTemplateTools(supportService),
                 new ReportTools(supportService),
-                new DefenseTools(supportService)
+                new DefenseTools(supportService),
+                new StubDocumentGateway()
         );
     }
 
@@ -58,6 +59,16 @@ class ArtifactGenerationServiceTests {
         ArtifactReviewResponse response = artifactGenerationService.reviewArtifact(request);
         assertEquals("completeness", response.getReviewType());
         assertTrue(response.getReviewResult().contains("课设完整性审查"));
+    }
+
+    @Test
+    void shouldReturnDownloadInfoForReportArtifact() {
+        ArtifactGenerationRequest request = new ArtifactGenerationRequest();
+        request.setTopic("学生成绩管理系统");
+        request.setArtifactType("report_outline");
+        ArtifactGenerationResponse response = artifactGenerationService.generateArtifact(request);
+        assertEquals("report.docx", response.getExportedFileName());
+        assertEquals("/api/course_project/artifact/download/report.docx", response.getDownloadUrl());
     }
 
     @Test
@@ -98,5 +109,18 @@ class ArtifactGenerationServiceTests {
                 return null;
             }
         };
+    }
+
+    private static class StubDocumentGateway implements DocumentGateway {
+
+        @Override
+        public DocumentGateway.ParsedDocumentResult parseDocument(String filePath) {
+            return new DocumentGateway.ParsedDocumentResult("测试文档", "测试内容", "测试内容", "txt");
+        }
+
+        @Override
+        public DocumentGateway.ExportedDocumentResult exportReportDocx(String topic, String artifactType, String title, String content) {
+            return new DocumentGateway.ExportedDocumentResult("report.docx", "target/report.docx", "/api/course_project/artifact/download/report.docx");
+        }
     }
 }

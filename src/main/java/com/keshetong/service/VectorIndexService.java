@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -42,17 +41,20 @@ public class VectorIndexService {
     private final DocumentChunkService chunkService;
     private final FileUploadConfig fileUploadConfig;
     private final RagProperties ragProperties;
+    private final DocumentGateway documentGateway;
 
     public VectorIndexService(@Lazy MilvusServiceClient milvusClient,
                               VectorEmbeddingService embeddingService,
                               DocumentChunkService chunkService,
                               FileUploadConfig fileUploadConfig,
-                              RagProperties ragProperties) {
+                              RagProperties ragProperties,
+                              DocumentGateway documentGateway) {
         this.milvusClient = milvusClient;
         this.embeddingService = embeddingService;
         this.chunkService = chunkService;
         this.fileUploadConfig = fileUploadConfig;
         this.ragProperties = ragProperties;
+        this.documentGateway = documentGateway;
     }
 
     public IndexingResult indexDirectory(String directoryPath) {
@@ -67,7 +69,7 @@ public class VectorIndexService {
             }
             result.setDirectoryPath(directory.getAbsolutePath());
 
-            File[] files = directory.listFiles((dir, name) -> name.endsWith(".txt") || name.endsWith(".md"));
+            File[] files = directory.listFiles((dir, name) -> isSupportedKnowledgeFile(name));
             if (files == null || files.length == 0) {
                 result.setTotalFiles(0);
                 result.setSuccess(true);
@@ -105,7 +107,8 @@ public class VectorIndexService {
             throw new IllegalArgumentException("文件不存在：" + filePath);
         }
 
-        String content = Files.readString(path);
+        DocumentGateway.ParsedDocumentResult parsedDocument = documentGateway.parseDocument(path.toString());
+        String content = parsedDocument.textContent();
         deleteExistingData(path.toString());
         List<DocumentChunk> chunks = chunkService.chunkDocument(content, path.toString());
         for (DocumentChunk chunk : chunks) {
@@ -114,6 +117,27 @@ public class VectorIndexService {
             insertToMilvus(chunk.getContent(), vector, metadata, chunk.getChunkIndex());
         }
         return new SingleFileIndexingResult(true, path.toString(), chunks.size(), "知识库入库成功");
+    }
+
+    private boolean isSupportedKnowledgeFile(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return false;
+        }
+        String extension = "";
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot >= 0 && lastDot < fileName.length() - 1) {
+            extension = fileName.substring(lastDot + 1).toLowerCase();
+        }
+        String allowedExtensions = fileUploadConfig.getAllowedExtensions();
+        if (allowedExtensions == null || allowedExtensions.isBlank()) {
+            return false;
+        }
+        for (String candidate : allowedExtensions.split(",")) {
+            if (extension.equals(candidate.trim().toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void deleteExistingData(String filePath) {

@@ -1,32 +1,48 @@
 package com.keshetong.service;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keshetong.config.DocumentMcpProperties;
+import io.modelcontextprotocol.client.McpClient;
+import io.modelcontextprotocol.client.McpSyncClient;
+import io.modelcontextprotocol.client.transport.WebFluxSseClientTransport;
+import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.spec.McpSchema;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class DocumentMcpClient implements DocumentGateway {
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentMcpClient.class);
-    private static final Gson GSON = new Gson();
+    private static final String PARSE_DOCUMENT_TOOL = "parse_document_tool";
+    private static final String EXPORT_REPORT_DOCX_TOOL = "export_report_docx_tool";
 
     private final DocumentMcpProperties properties;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Object lifecycleMonitor = new Object();
+
+    private volatile Process serverProcess;
+    private volatile McpSyncClient syncClient;
 
     public DocumentMcpClient(DocumentMcpProperties properties) {
         this.properties = properties;
@@ -44,20 +60,15 @@ public class DocumentMcpClient implements DocumentGateway {
             return fallbackParse(path, extension);
         }
 
-        JsonObject payload = new JsonObject();
-        payload.addProperty("file_path", path.toString());
-        payload.addProperty("file_type", extension);
-
-        JsonObject response = invokeBridge("parse_document", payload);
-        ensureSuccess(response, "文档解析失败");
-        String title = getString(response, "title");
-        String markdown = getString(response, "markdown");
-        String textContent = getString(response, "text_content");
-        String fileType = getString(response, "file_type");
+        Map<String, Object> result = callTool(PARSE_DOCUMENT_TOOL, Map.of("file_path", path.toString()), "文档解析失败");
+        String title = getString(result, "title");
+        String markdown = getString(result, "markdown");
+        String textContent = getString(result, "text_content");
+        String fileType = getString(result, "file_type");
         if (textContent == null || textContent.isBlank()) {
             throw new RuntimeException("文档解析结果为空，无法写入知识库");
         }
-        return new ParsedDocumentResult(title, markdown, textContent, fileType == null || fileType.isBlank() ? extension : fileType);
+        return new ParsedDocumentResult(title, markdown, textContent, normalizeValue(fileType, extension));
     }
 
     @Override
@@ -69,21 +80,145 @@ public class DocumentMcpClient implements DocumentGateway {
             throw new RuntimeException("文档 MCP 服务未启用，无法导出 Word 文件");
         }
 
-        JsonObject payload = new JsonObject();
-        payload.addProperty("topic", topic);
-        payload.addProperty("artifact_type", artifactType);
-        payload.addProperty("title", title);
-        payload.addProperty("content", content);
-        payload.addProperty("output_dir", resolveOutputDir().toString());
+        Map<String, Object> args = new LinkedHashMap<>();
+        args.put("topic", topic);
+        args.put("artifact_type", artifactType);
+        args.put("title", title);
+        args.put("content", content);
+        args.put("output_dir", resolveOutputDir().toString());
 
-        JsonObject response = invokeBridge("export_report_docx", payload);
-        ensureSuccess(response, "报告导出失败");
-        String fileName = getString(response, "file_name");
-        String filePath = getString(response, "file_path");
+        Map<String, Object> result = callTool(EXPORT_REPORT_DOCX_TOOL, args, "报告导出失败");
+        String fileName = getString(result, "file_name");
+        String filePath = getString(result, "file_path");
         if (fileName == null || fileName.isBlank() || filePath == null || filePath.isBlank()) {
             throw new RuntimeException("报告导出结果不完整，未返回文件信息");
         }
         return new ExportedDocumentResult(fileName, filePath, "/api/course_project/artifact/download/" + fileName);
+    }
+
+    private Map<String, Object> callTool(String toolName, Map<String, Object> args, String defaultErrorMessage) {
+        McpSyncClient client = ensureClientReady();
+        try {
+            McpSchema.CallToolResult result = client.callTool(new McpSchema.CallToolRequest(toolName, args));
+            if (Boolean.TRUE.equals(result.isError())) {
+                throw new RuntimeException(extractTextContent(result, defaultErrorMessage));
+            }
+            return extractStructuredContent(result, defaultErrorMessage);
+        } catch (RuntimeException e) {
+            resetClientState();
+            throw e;
+        } catch (Exception e) {
+            resetClientState();
+            throw new RuntimeException(defaultErrorMessage + "：" + e.getMessage(), e);
+        }
+    }
+
+    private McpSyncClient ensureClientReady() {
+        McpSyncClient current = this.syncClient;
+        if (current != null) {
+            return current;
+        }
+        synchronized (lifecycleMonitor) {
+            if (this.syncClient != null) {
+                return this.syncClient;
+            }
+            ensureServerStarted();
+            try {
+                WebFluxSseClientTransport transport = WebFluxSseClientTransport.builder(
+                                WebClient.builder().baseUrl(buildBaseUrl()))
+                        .jsonMapper(new JacksonMcpJsonMapper(objectMapper))
+                        .sseEndpoint(properties.getSseEndpoint())
+                        .build();
+
+                McpSyncClient createdClient = McpClient.sync(transport)
+                        .clientInfo(new McpSchema.Implementation("course-project-document-client", "课设通文档客户端", "1.0.0"))
+                        .requestTimeout(Duration.ofMillis(properties.getTimeoutMs()))
+                        .initializationTimeout(Duration.ofMillis(properties.getStartupTimeoutMs()))
+                        .build();
+                createdClient.initialize();
+                this.syncClient = createdClient;
+                logger.info("文档 MCP 客户端已通过 SSE 建立连接：{}", buildBaseUrl());
+                return createdClient;
+            } catch (Exception e) {
+                resetClientState();
+                throw new RuntimeException("初始化文档 MCP 客户端失败：" + e.getMessage(), e);
+            }
+        }
+    }
+
+    private void ensureServerStarted() {
+        Process currentProcess = this.serverProcess;
+        if (currentProcess != null && currentProcess.isAlive()) {
+            waitForServerReady();
+            return;
+        }
+
+        Path pythonPath = resolveRequiredPath(properties.getPythonPath(), "未配置文档 MCP Python 解释器路径");
+        Path serverScriptPath = resolveRequiredPath(properties.getServerScriptPath(), "未配置文档 MCP 服务脚本路径");
+        List<String> command = new ArrayList<>();
+        command.add(pythonPath.toString());
+        command.add(serverScriptPath.toString());
+        command.add("--transport");
+        command.add(normalizeValue(properties.getTransport(), "sse"));
+        command.add("--host");
+        command.add(normalizeValue(properties.getHost(), "127.0.0.1"));
+        command.add("--port");
+        command.add(String.valueOf(properties.getPort()));
+        command.add("--log-level");
+        command.add(normalizeValue(properties.getLogLevel(), "INFO"));
+
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.redirectErrorStream(true);
+        processBuilder.environment().put("PYTHONUTF8", "1");
+
+        try {
+            Process process = processBuilder.start();
+            this.serverProcess = process;
+            startLogPump(process);
+            waitForServerReady();
+            logger.info("文档 MCP 服务已启动：{}", buildBaseUrl());
+        } catch (IOException e) {
+            throw new RuntimeException("启动文档 MCP 服务失败：" + e.getMessage(), e);
+        }
+    }
+
+    private void waitForServerReady() {
+        long deadline = System.currentTimeMillis() + properties.getStartupTimeoutMs();
+        while (System.currentTimeMillis() < deadline) {
+            Process currentProcess = this.serverProcess;
+            if (currentProcess != null && !currentProcess.isAlive()) {
+                throw new RuntimeException("文档 MCP 服务启动失败，进程已提前退出");
+            }
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress(properties.getHost(), properties.getPort()), 1000);
+                return;
+            } catch (IOException ignored) {
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("等待文档 MCP 服务启动时被中断", e);
+                }
+            }
+        }
+        throw new RuntimeException("等待文档 MCP 服务启动超时，请检查 Python 环境或端口占用情况");
+    }
+
+    private void startLogPump(Process process) {
+        Thread thread = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.isBlank()) {
+                        logger.info("文档 MCP 服务输出：{}", line);
+                    }
+                }
+            } catch (IOException e) {
+                logger.warn("读取文档 MCP 服务日志失败：{}", e.getMessage());
+            }
+        }, "document-mcp-log-pump");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private ParsedDocumentResult fallbackParse(Path path, String extension) {
@@ -99,58 +234,34 @@ public class DocumentMcpClient implements DocumentGateway {
         }
     }
 
-    private JsonObject invokeBridge(String action, JsonObject payload) {
-        Path pythonPath = resolveRequiredPath(properties.getPythonPath(), "未配置文档 MCP Python 解释器路径");
-        Path bridgeScript = resolveRequiredPath(properties.getBridgeScriptPath(), "未配置文档 MCP bridge 脚本路径");
-        List<String> command = new ArrayList<>();
-        command.add(pythonPath.toString());
-        command.add(bridgeScript.toString());
-        command.add(action);
-
-        ProcessBuilder processBuilder = new ProcessBuilder(command);
-        processBuilder.redirectErrorStream(true);
-        processBuilder.environment().put("PYTHONUTF8", "1");
-
+    private Map<String, Object> extractStructuredContent(McpSchema.CallToolResult result, String defaultErrorMessage) {
+        Object structuredContent = result.structuredContent();
+        if (structuredContent != null) {
+            return objectMapper.convertValue(structuredContent, new TypeReference<>() {
+            });
+        }
+        String textContent = extractTextContent(result, defaultErrorMessage);
         try {
-            Process process = processBuilder.start();
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
-                writer.write(GSON.toJson(payload));
-            }
-
-            String output;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-                output = reader.lines().reduce("", (left, right) -> left + right);
-            }
-
-            boolean finished = process.waitFor(Duration.ofMillis(properties.getTimeoutMs()).toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS);
-            if (!finished) {
-                process.destroyForcibly();
-                throw new RuntimeException("调用文档 MCP 工具超时：" + action);
-            }
-
-            if (output == null || output.isBlank()) {
-                throw new RuntimeException("文档 MCP 工具未返回结果：" + action);
-            }
-
-            JsonObject response = GSON.fromJson(output, JsonObject.class);
-            if (response == null) {
-                throw new RuntimeException("文档 MCP 工具返回了无法解析的结果：" + action);
-            }
-            return response;
-        } catch (IOException e) {
-            logger.error("启动文档 MCP bridge 失败：{}", action, e);
-            throw new RuntimeException("启动文档 MCP 工具失败：" + e.getMessage(), e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("调用文档 MCP 工具时被中断", e);
+            return objectMapper.readValue(textContent, new TypeReference<>() {
+            });
+        } catch (Exception ignored) {
+            throw new RuntimeException(textContent);
         }
     }
 
-    private void ensureSuccess(JsonObject response, String defaultMessage) {
-        if (!response.has("success") || !response.get("success").getAsBoolean()) {
-            String error = getString(response, "error");
-            throw new RuntimeException(error == null || error.isBlank() ? defaultMessage : error);
+    private String extractTextContent(McpSchema.CallToolResult result, String defaultMessage) {
+        if (result.content() == null || result.content().isEmpty()) {
+            return defaultMessage;
         }
+        for (McpSchema.Content content : result.content()) {
+            if (content instanceof McpSchema.TextContent textContent) {
+                String text = textContent.text();
+                if (text != null && !text.isBlank()) {
+                    return text;
+                }
+            }
+        }
+        return defaultMessage;
     }
 
     private Path resolveRequiredPath(String configuredPath, String errorMessage) {
@@ -184,6 +295,10 @@ public class DocumentMcpClient implements DocumentGateway {
         return path;
     }
 
+    private String buildBaseUrl() {
+        return "http://" + normalizeValue(properties.getHost(), "127.0.0.1") + ":" + properties.getPort();
+    }
+
     private String resolveExtension(String fileName) {
         int lastDot = fileName.lastIndexOf('.');
         if (lastDot < 0 || lastDot == fileName.length() - 1) {
@@ -192,10 +307,54 @@ public class DocumentMcpClient implements DocumentGateway {
         return fileName.substring(lastDot + 1).toLowerCase();
     }
 
-    private String getString(JsonObject response, String fieldName) {
-        if (!response.has(fieldName) || response.get(fieldName).isJsonNull()) {
-            return null;
+    private String getString(Map<String, Object> response, String fieldName) {
+        Object value = response.get(fieldName);
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private String normalizeValue(String value, String defaultValue) {
+        return value == null || value.isBlank() ? defaultValue : value;
+    }
+
+    private void resetClientState() {
+        synchronized (lifecycleMonitor) {
+            closeClientQuietly();
+            destroyProcessQuietly();
+            this.syncClient = null;
+            this.serverProcess = null;
         }
-        return response.get(fieldName).getAsString();
+    }
+
+    private void closeClientQuietly() {
+        if (this.syncClient == null) {
+            return;
+        }
+        try {
+            this.syncClient.closeGracefully();
+        } catch (Exception e) {
+            logger.warn("关闭文档 MCP 客户端时出现异常：{}", e.getMessage());
+        }
+    }
+
+    private void destroyProcessQuietly() {
+        if (this.serverProcess == null) {
+            return;
+        }
+        try {
+            this.serverProcess.destroy();
+            if (!this.serverProcess.waitFor(3, TimeUnit.SECONDS)) {
+                this.serverProcess.destroyForcibly();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            this.serverProcess.destroyForcibly();
+        } catch (Exception e) {
+            logger.warn("关闭文档 MCP 服务进程时出现异常：{}", e.getMessage());
+        }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        resetClientState();
     }
 }

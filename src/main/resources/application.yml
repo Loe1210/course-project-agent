@@ -51,9 +51,15 @@ document:
   mcp:
     enabled: true
     python-path: ./.venv-document-mcp/Scripts/python.exe
-    bridge-script-path: ./document-mcp-server/invoke_tool.py
+    server-script-path: ./document-mcp-server/server.py
+    transport: sse
+    host: 127.0.0.1
+    port: 18080
+    sse-endpoint: /sse
+    log-level: INFO
     output-path: ./generated-reports
     timeout-ms: 120000
+    startup-timeout-ms: 30000
 
 rag:
   top-k: 3

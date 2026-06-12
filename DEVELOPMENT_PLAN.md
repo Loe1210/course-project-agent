@@ -678,10 +678,12 @@ feature/document-mcp-enhancement
 开发分支：feature/document-mcp-enhancement
 文档解析内核：优先采用成熟开源工具 MarkItDown
 报告导出内核：当前实现采用 python-docx 生成 docx 文件
-接入方式：新增独立 document-mcp-server，对主服务暴露 parse_document 和 export_report_docx 两个核心工具，同时提供本地 bridge 供主服务调用
+接入方式：新增独立 document-mcp-server，对主服务暴露 parse_document 和 export_report_docx 两个核心工具
 主服务职责：负责上传接口、RAG 分片与向量化、PAR 流程、产物生成主链路
 MCP 服务职责：负责文档解析与 Word 导出，降低主服务与具体文档库的耦合
-本轮策略：先做可跑通的本地 MCP 文档服务，再进入联调与验收模块
+MCP 调用方案：主服务采用标准 McpSyncClient + WebFluxSseClientTransport，通过 SSE 连接本地 document-mcp-server
+Spring AI 自动装配：当前未启用通用 spring.ai.mcp.client 自动发现，而是为文档服务单独封装标准 MCP SDK 调用层，避免影响现有工具链
+本轮策略：先落地标准 SSE MCP 文档链路，再进入联调与验收模块
 ```
 
 开发记录：
@@ -700,6 +702,10 @@ MCP 服务职责：负责文档解析与 Word 导出，降低主服务与具体�
 已改造：ArtifactGenerationService 在报告类产物生成后自动导出 docx 并返回下载地址
 已改造：前端知识库提示文案与单项报告产物下载入口
 已补充：本地 Python 虚拟环境 .venv-document-mcp 与 document-mcp-server/requirements.txt
+已升级：document-mcp-server/server.py 支持通过命令行参数以 SSE 模式启动
+已升级：DocumentMcpProperties 增加 server-script-path、transport、host、port、sse-endpoint、startup-timeout-ms 等配置
+已升级：DocumentMcpClient 从本地 bridge 调用切换为标准 McpSyncClient + WebFluxSseClientTransport 调用
+已补充：DocumentMcpClientIntegrationTests，用真实 Python 文档服务验证 SSE 文档解析与 docx 导出链路
 ```
 
 检查结果：
@@ -708,10 +714,10 @@ MCP 服务职责：负责文档解析与 Word 导出，降低主服务与具体�
 后端测试工具：IDEA 自带 Maven 3.9.11
 测试命令：mvn test
 测试结果：BUILD SUCCESS
-测试明细：Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
-额外检查：document-mcp-server 解析 md 文档成功
-额外检查：document-mcp-server 导出 docx 文件成功
-说明：当前主服务通过本地 bridge 调用同一套文档工具实现，FastMCP server 已一并落地，后续可在联调模块切换为标准 MCP transport
+测试明细：Tests run: 22, Failures: 0, Errors: 0, Skipped: 0
+额外检查：document-mcp-server 的 /sse 端点可正常启动并返回 200
+额外检查：DocumentMcpClientIntegrationTests 已真实跑通「Java MCP Client -> SSE -> Python 文档服务 -> 文档解析 / docx 导出」链路
+说明：当前文档能力已切换为标准 SSE MCP 调用，不再由主服务直接调用本地 bridge 完成核心流程
 ```
 
 ### 9. 联调与验收模块
@@ -821,6 +827,7 @@ release/course-project-agent-v1
 | 2026-06-12 | 课设产物生成模块 | `feature/artifact-generation` | 实现单产物生成与完整性审查接口，支持报告初稿、测试用例与答辩问答生成 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-13 | 文档能力增强与 MCP 模块 | `feature/document-mcp-enhancement` | 确认采用“成熟文档工具 + 自建 document-mcp-server”的增强方案并创建功能分支 | 已完成，进入设计落档与开发准备 |
 | 2026-06-13 | 文档能力增强与 MCP 模块 | `feature/document-mcp-enhancement` | 实现文档解析 bridge、FastMCP 文档服务、RAG 接入、报告 docx 导出与前端下载入口 | 本地完成，mvn test 通过，等待推送 |
+| 2026-06-13 | 文档能力增强与 MCP 模块 | `feature/document-mcp-enhancement` | 将文档接入方式从本地 bridge 升级为标准 SSE MCP 调用，并补充真实集成测试 | 本地完成，22 项测试通过 |
 
 ## 7. 当前下一步
 
@@ -829,5 +836,5 @@ release/course-project-agent-v1
 ```text
 第 8 步：文档能力增强与 MCP 模块
 建议分支：feature/document-mcp-enhancement
-下一步动作：将当前模块实现提交并推送到 GitHub 对应分支，等待用户确认是否继续补联调或准备后续合并
+下一步动作：将当前 SSE MCP 版本提交并推送到 GitHub 对应分支，向用户汇报本轮检查结果，再决定是否继续联调与合并
 ```

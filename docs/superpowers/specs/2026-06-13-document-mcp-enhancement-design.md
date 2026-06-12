@@ -54,6 +54,7 @@
 `DocumentMcpClient`
 
 - 负责封装主服务到 MCP 服务的调用
+- 负责以 `McpSyncClient + WebFluxSseClientTransport` 方式连接本地 `document-mcp-server`
 - 负责请求构造、响应解析、异常转换
 - 对上层暴露统一中文接口
 
@@ -94,6 +95,17 @@
 -> 调用 export_report_docx
 -> 生成 Word 文件
 -> 前端展示下载入口
+```
+
+### 4.3 MCP 调用链路
+
+```text
+主服务触发文档能力
+-> DocumentMcpClient 检查本地 document-mcp-server 是否已启动
+-> 未启动则拉起 Python FastMCP 服务（SSE）
+-> McpSyncClient 通过 WebFluxSseClientTransport 连接 /sse
+-> 调用 parse_document_tool 或 export_report_docx_tool
+-> 解析工具结果并回传给主服务
 ```
 
 ## 5. 目录规划
@@ -149,7 +161,7 @@
 4. 文档在线预览编辑。
 5. 多租户文档隔离平台化能力。
 
-本轮只聚焦“能解析、能入库、能导出、能通过 MCP 调用”。
+本轮只聚焦“能解析、能入库、能导出、能通过标准 SSE MCP 调用”。
 
 ## 9. 开发顺序
 

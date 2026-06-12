@@ -3,6 +3,12 @@ package com.keshetong.service;
 import com.keshetong.config.CourseProjectAgentProperties;
 import com.keshetong.config.CourseProjectProperties;
 import com.keshetong.dto.CourseProjectRequest;
+import com.keshetong.agent.tool.ApiDesignTools;
+import com.keshetong.agent.tool.DatabaseDesignTools;
+import com.keshetong.agent.tool.DefenseTools;
+import com.keshetong.agent.tool.ProjectTemplateTools;
+import com.keshetong.agent.tool.ReportTools;
+import com.keshetong.config.ArtifactGenerationProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.ObjectProvider;
@@ -21,7 +27,8 @@ class CourseProjectAgentServiceTests {
                 emptyProvider(),
                 properties,
                 projectProperties,
-                new CourseAgentToolRegistry(null, null, null, null, null, null, null, null)
+                new CourseAgentToolRegistry(null, null, null, null, null, null, null, null),
+                createArtifactGenerationService(projectProperties)
         );
         String requestId = service.resolveRequestId(null);
         assertEquals(true, requestId.startsWith("course-project-"));
@@ -35,13 +42,30 @@ class CourseProjectAgentServiceTests {
                 emptyProvider(),
                 properties,
                 projectProperties,
-                new CourseAgentToolRegistry(null, null, null, null, null, null, null, null)
+                new CourseAgentToolRegistry(null, null, null, null, null, null, null, null),
+                createArtifactGenerationService(projectProperties)
         );
         CourseProjectRequest request = new CourseProjectRequest();
         request.setTopic("");
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> service.generateCourseProjectPlan(request));
         assertEquals("课设题目不能为空", exception.getMessage());
+    }
+
+    private ArtifactGenerationService createArtifactGenerationService(CourseProjectProperties projectProperties) {
+        CourseToolSupportService supportService = new CourseToolSupportService(projectProperties);
+        ArtifactGenerationProperties artifactProperties = new ArtifactGenerationProperties();
+        artifactProperties.setEnableLlmDraft(false);
+        return new ArtifactGenerationService(
+                emptyProvider(),
+                artifactProperties,
+                projectProperties,
+                new DatabaseDesignTools(supportService),
+                new ApiDesignTools(supportService),
+                new ProjectTemplateTools(supportService),
+                new ReportTools(supportService),
+                new DefenseTools(supportService)
+        );
     }
 
     private ObjectProvider<ChatClient.Builder> emptyProvider() {

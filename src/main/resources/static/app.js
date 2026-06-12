@@ -250,19 +250,33 @@
             "## Planner 阶段输出",
             projectData.plannerResult,
             "## Executor 阶段输出",
-            projectData.executorResult
+            projectData.executorResult,
+            "## 聚合摘要",
+            projectData.summary || "本次请求已生成主方案和配套产物。"
         ].join("\n\n");
         appendMessage("assistant", "PAR 完整方案", combined);
-        setStructuredResults([
+        const resultItems = [
             { key: "Supervisor", content: projectData.supervisorResult },
             { key: "Planner", content: projectData.plannerResult },
             { key: "Executor", content: projectData.executorResult }
-        ]);
-        appendArtifactSummary([
-            { title: "数据库设计", content: "当前版本会在下一阶段合并为 PAR 自动产物。你也可以先用快捷按钮单独补生成。" },
-            { title: "接口设计", content: "当前前端已为 PAR 聚合结果预留抽屉展示位，后续会接入完整自动联动结果。" },
-            { title: "报告与答辩", content: "现阶段可先使用单独产物快捷入口，下一步会把报告大纲、测试用例和答辩问答并入主流程。" }
-        ]);
+        ];
+        const artifactCards = [];
+        appendProjectArtifact(resultItems, artifactCards, "数据库设计", projectData.databaseDesign);
+        appendProjectArtifact(resultItems, artifactCards, "接口设计", projectData.apiDesign);
+        appendProjectArtifact(resultItems, artifactCards, "项目结构", projectData.projectStructure);
+        appendProjectArtifact(resultItems, artifactCards, "报告大纲", projectData.reportOutline);
+        appendProjectArtifact(resultItems, artifactCards, "测试用例", projectData.testCases);
+        appendProjectArtifact(resultItems, artifactCards, "答辩问答", projectData.defenseQa);
+        if (projectData.failedArtifacts && Object.keys(projectData.failedArtifacts).length) {
+            resultItems.push({
+                key: "失败产物",
+                content: Object.entries(projectData.failedArtifacts).map(([key, value]) => `- ${key}：${value}`).join("\n")
+            });
+        }
+        setStructuredResults(resultItems);
+        if (artifactCards.length) {
+            appendArtifactSummary(artifactCards);
+        }
         addRecentRequest("PAR 完整方案", payload.topic);
         openDrawer("results");
         setStatus("已完成", "status-success");
@@ -315,19 +329,23 @@
             if (!response.ok) {
                 throw new Error(data.message || "上传失败");
             }
+            const knowledgeMessage = data.data.knowledgeBaseMessage || "文件已上传";
+            const detailMessage = data.data.vectorIndexed
+                ? `${knowledgeMessage}，共处理 ${data.data.chunkCount || 0} 个分片。`
+                : `${knowledgeMessage}：${data.data.errorMessage || "未返回具体原因"}`;
             const record = {
                 fileName: data.data.fileName,
                 filePath: data.data.filePath,
                 fileSize: data.data.fileSize,
                 uploadedAt: new Date().toLocaleString("zh-CN"),
-                status: "文件已上传，知识库入库结果请结合后端日志与后续检索效果确认"
+                status: detailMessage
             };
             state.knowledgeRecords.unshift(record);
             state.knowledgeRecords = state.knowledgeRecords.slice(0, 12);
             saveJson(KNOWLEDGE_RECORDS_KEY, state.knowledgeRecords);
             renderKnowledgeRecords();
-            appendSystemHint("知识库文档已上传：" + record.fileName + "。当前版本后端会继续执行分片、向量化和入库。");
-            setStatus("上传完成", "status-success");
+            appendSystemHint("知识库文档处理结果：" + record.fileName + "。 " + detailMessage);
+            setStatus(data.data.vectorIndexed ? "上传完成" : "入库失败", data.data.vectorIndexed ? "status-success" : "status-danger");
         } catch (error) {
             setStatus("上传失败", "status-danger");
             renderKnowledgeStatus("上传失败：" + (error.message || "未知错误"));
@@ -708,6 +726,22 @@
 
     function readableArtifactType(type) {
         return artifactMeta[type] || type;
+    }
+
+    function appendProjectArtifact(resultItems, artifactCards, title, content) {
+        if (!content) {
+            return;
+        }
+        resultItems.push({ key: title, content: content });
+        artifactCards.push({ title: title, content: previewText(content) });
+    }
+
+    function previewText(content) {
+        const flattened = String(content || "").replace(/\s+/g, " ").trim();
+        if (flattened.length <= 72) {
+            return flattened;
+        }
+        return flattened.slice(0, 72) + "...";
     }
 
     function readableFileSize(size) {

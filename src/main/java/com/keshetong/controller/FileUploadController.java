@@ -65,14 +65,34 @@ public class FileUploadController {
             logger.info("已上传知识库文件：{}", filePath);
 
             try {
-                vectorIndexService.indexSingleFile(filePath.toString());
+                VectorIndexService.SingleFileIndexingResult indexingResult = vectorIndexService.indexSingleFile(filePath.toString());
+                return ResponseEntity.ok(ApiResponse.success(
+                        new FileUploadResponse(
+                                originalFilename,
+                                filePath.toString(),
+                                file.getSize(),
+                                true,
+                                indexingResult.isSuccess(),
+                                indexingResult.getChunkCount(),
+                                indexingResult.getMessage(),
+                                null
+                        )
+                ));
             } catch (Exception e) {
                 logger.error("知识库文件入库失败：{}", filePath, e);
+                return ResponseEntity.ok(ApiResponse.success(
+                        new FileUploadResponse(
+                                originalFilename,
+                                filePath.toString(),
+                                file.getSize(),
+                                true,
+                                false,
+                                0,
+                                "文件已保存，但知识库入库失败",
+                                e.getMessage()
+                        )
+                ));
             }
-
-            return ResponseEntity.ok(ApiResponse.success(
-                    new FileUploadResponse(originalFilename, filePath.toString(), file.getSize())
-            ));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("文件上传失败: " + e.getMessage()));

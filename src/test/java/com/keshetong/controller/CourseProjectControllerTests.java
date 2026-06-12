@@ -37,14 +37,7 @@ class CourseProjectControllerTests {
         request.setUseTools(true);
 
         Mockito.when(courseProjectAgentService.generateCourseProjectPlan(Mockito.any(CourseProjectRequest.class)))
-                .thenReturn(new CourseProjectResponse(
-                        "project-001",
-                        "校园二手交易平台",
-                        "supervisor",
-                        "planner",
-                        "executor",
-                        true
-                ));
+                .thenReturn(buildResponse());
 
         mockMvc.perform(post("/api/course_project")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -53,6 +46,7 @@ class CourseProjectControllerTests {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.requestId").value("project-001"))
                 .andExpect(jsonPath("$.data.topic").value("校园二手交易平台"))
+                .andExpect(jsonPath("$.data.databaseDesign").value("数据库设计"))
                 .andExpect(jsonPath("$.data.usedTools").value(true));
     }
 
@@ -70,5 +64,23 @@ class CourseProjectControllerTests {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("课设题目不能为空"));
+    }
+
+    private CourseProjectResponse buildResponse() {
+        CourseProjectResponse response = new CourseProjectResponse();
+        response.setRequestId("project-001");
+        response.setTopic("校园二手交易平台");
+        response.setSupervisorResult("supervisor");
+        response.setPlannerResult("planner");
+        response.setExecutorResult("executor");
+        response.setDatabaseDesign("数据库设计");
+        response.setApiDesign("接口设计");
+        response.setProjectStructure("项目结构");
+        response.setReportOutline("报告大纲");
+        response.setTestCases("测试用例");
+        response.setDefenseQa("答辩问答");
+        response.setSummary("聚合结果摘要");
+        response.setUsedTools(true);
+        return response;
     }
 }

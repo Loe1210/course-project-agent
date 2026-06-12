@@ -12,6 +12,7 @@ import io.milvus.param.RpcStatus;
 import io.milvus.param.collection.LoadCollectionParam;
 import io.milvus.param.dml.DeleteParam;
 import io.milvus.param.dml.InsertParam;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -97,7 +98,7 @@ public class VectorIndexService {
         }
     }
 
-    public void indexSingleFile(String filePath) throws Exception {
+    public SingleFileIndexingResult indexSingleFile(String filePath) throws Exception {
         Path path = Paths.get(filePath).normalize();
         File file = path.toFile();
         if (!file.exists() || !file.isFile()) {
@@ -112,6 +113,7 @@ public class VectorIndexService {
             Map<String, Object> metadata = buildMetadata(path.toString(), chunk, chunks.size());
             insertToMilvus(chunk.getContent(), vector, metadata, chunk.getChunkIndex());
         }
+        return new SingleFileIndexingResult(true, path.toString(), chunks.size(), "知识库入库成功");
     }
 
     private void deleteExistingData(String filePath) {
@@ -186,6 +188,15 @@ public class VectorIndexService {
         } catch (Exception e) {
             throw new RuntimeException("写入文档分片到 Milvus 失败：" + e.getMessage(), e);
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class SingleFileIndexingResult {
+        private final boolean success;
+        private final String filePath;
+        private final int chunkCount;
+        private final String message;
     }
 
     @Getter

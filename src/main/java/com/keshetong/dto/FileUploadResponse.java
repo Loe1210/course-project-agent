@@ -12,4 +12,9 @@ public class FileUploadResponse {
     private String fileName;
     private String filePath;
     private Long fileSize;
+    private boolean fileSaved;
+    private boolean vectorIndexed;
+    private Integer chunkCount;
+    private String knowledgeBaseMessage;
+    private String errorMessage;
 }

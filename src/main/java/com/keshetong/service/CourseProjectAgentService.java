@@ -2,6 +2,8 @@ package com.keshetong.service;
 
 import com.keshetong.config.CourseProjectAgentProperties;
 import com.keshetong.config.CourseProjectProperties;
+import com.keshetong.dto.ArtifactGenerationRequest;
+import com.keshetong.dto.ArtifactGenerationResponse;
 import com.keshetong.dto.CourseProjectRequest;
 import com.keshetong.dto.CourseProjectResponse;
 import org.springframework.ai.chat.client.ChatClient;
@@ -9,6 +11,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -74,15 +78,18 @@ public class CourseProjectAgentService {
     private final CourseProjectAgentProperties properties;
     private final CourseProjectProperties courseProjectProperties;
     private final CourseAgentToolRegistry toolRegistry;
+    private final ArtifactGenerationService artifactGenerationService;
 
     public CourseProjectAgentService(ObjectProvider<ChatClient.Builder> chatClientBuilderProvider,
                                      CourseProjectAgentProperties properties,
                                      CourseProjectProperties courseProjectProperties,
-                                     CourseAgentToolRegistry toolRegistry) {
+                                     CourseAgentToolRegistry toolRegistry,
+                                     ArtifactGenerationService artifactGenerationService) {
         this.chatClientBuilderProvider = chatClientBuilderProvider;
         this.properties = properties;
         this.courseProjectProperties = courseProjectProperties;
         this.toolRegistry = toolRegistry;
+        this.artifactGenerationService = artifactGenerationService;
     }
 
     public CourseProjectResponse generateCourseProjectPlan(CourseProjectRequest request) {
@@ -93,7 +100,23 @@ public class CourseProjectAgentService {
             String supervisorResult = runStage(SUPERVISOR_PROMPT, buildSupervisorUserPrompt(requestId, topic, request), false);
             String plannerResult = runStage(PLANNER_PROMPT, buildPlannerUserPrompt(requestId, topic, request, supervisorResult), shouldUseTools(request));
             String executorResult = runStage(EXECUTOR_PROMPT, buildExecutorUserPrompt(requestId, topic, request, supervisorResult, plannerResult), shouldUseTools(request));
-            return new CourseProjectResponse(requestId, topic, supervisorResult, plannerResult, executorResult, shouldUseTools(request));
+            GeneratedArtifacts generatedArtifacts = generateArtifacts(requestId, topic, request, plannerResult, executorResult);
+            return new CourseProjectResponse(
+                    requestId,
+                    topic,
+                    supervisorResult,
+                    plannerResult,
+                    executorResult,
+                    generatedArtifacts.databaseDesign,
+                    generatedArtifacts.apiDesign,
+                    generatedArtifacts.projectStructure,
+                    generatedArtifacts.reportOutline,
+                    generatedArtifacts.testCases,
+                    generatedArtifacts.defenseQa,
+                    buildSummary(topic, generatedArtifacts),
+                    generatedArtifacts.failedArtifacts,
+                    shouldUseTools(request)
+            );
         } catch (Exception e) {
             throw new RuntimeException("生成课设任务方案失败：" + e.getMessage(), e);
         }
@@ -253,6 +276,58 @@ public class CourseProjectAgentService {
         return value == null || value.isBlank() ? "未指定" : value.trim();
     }
 
+    private GeneratedArtifacts generateArtifacts(String requestId,
+                                                 String topic,
+                                                 CourseProjectRequest request,
+                                                 String plannerResult,
+                                                 String executorResult) {
+        GeneratedArtifacts generatedArtifacts = new GeneratedArtifacts();
+        String existingPlan = plannerResult + "\n\n" + executorResult;
+        generatedArtifacts.databaseDesign = tryGenerateArtifact(requestId, topic, request, existingPlan, "database_design", generatedArtifacts.failedArtifacts);
+        generatedArtifacts.apiDesign = tryGenerateArtifact(requestId, topic, request, existingPlan, "api_design", generatedArtifacts.failedArtifacts);
+        generatedArtifacts.projectStructure = tryGenerateArtifact(requestId, topic, request, existingPlan, "project_structure", generatedArtifacts.failedArtifacts);
+        generatedArtifacts.reportOutline = tryGenerateArtifact(requestId, topic, request, existingPlan, "report_outline", generatedArtifacts.failedArtifacts);
+        generatedArtifacts.testCases = tryGenerateArtifact(requestId, topic, request, existingPlan, "test_cases", generatedArtifacts.failedArtifacts);
+        generatedArtifacts.defenseQa = tryGenerateArtifact(requestId, topic, request, existingPlan, "defense_qa", generatedArtifacts.failedArtifacts);
+        return generatedArtifacts;
+    }
+
+    private String tryGenerateArtifact(String requestId,
+                                       String topic,
+                                       CourseProjectRequest request,
+                                       String existingPlan,
+                                       String artifactType,
+                                       Map<String, String> failedArtifacts) {
+        try {
+            ArtifactGenerationRequest artifactRequest = new ArtifactGenerationRequest();
+            artifactRequest.setRequestId(requestId + "-" + artifactType);
+            artifactRequest.setTopic(topic);
+            artifactRequest.setArtifactType(artifactType);
+            artifactRequest.setDirection(request.getDirection());
+            artifactRequest.setRequirements(request.getRequirements());
+            artifactRequest.setTechStack(request.getTechStack());
+            artifactRequest.setExistingPlan(existingPlan);
+            ArtifactGenerationResponse response = artifactGenerationService.generateArtifact(artifactRequest);
+            return response.getContent();
+        } catch (Exception e) {
+            failedArtifacts.put(artifactType, e.getMessage());
+            return "该产物生成失败：" + e.getMessage();
+        }
+    }
+
+    private String buildSummary(String topic, GeneratedArtifacts generatedArtifacts) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("已为课设题目《").append(topic).append("》生成主方案与配套产物。");
+        if (generatedArtifacts.failedArtifacts.isEmpty()) {
+            builder.append(" 当前数据库设计、接口设计、项目结构、报告大纲、测试用例和答辩问答均已生成。");
+        } else {
+            builder.append(" 其中有部分配套产物生成失败，需要后续补齐：");
+            generatedArtifacts.failedArtifacts.forEach((artifactType, error) ->
+                    builder.append("[").append(artifactType).append("：").append(error).append("]"));
+        }
+        return builder.toString();
+    }
+
     private void validateRequest(CourseProjectRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("请求体不能为空");
@@ -260,5 +335,15 @@ public class CourseProjectAgentService {
         if (request.getTopic() == null || request.getTopic().isBlank()) {
             throw new IllegalArgumentException("课设题目不能为空");
         }
+    }
+
+    private static class GeneratedArtifacts {
+        private String databaseDesign;
+        private String apiDesign;
+        private String projectStructure;
+        private String reportOutline;
+        private String testCases;
+        private String defenseQa;
+        private final Map<String, String> failedArtifacts = new LinkedHashMap<>();
     }
 }

@@ -57,8 +57,8 @@ fix: repair course project stream response
 | 2 | RAG 知识库模块 | `feature/rag-knowledge-base` | 已合并 |
 | 3 | Tool 工具模块 | `feature/course-tools` | 已合并 |
 | 4 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 已合并 |
-| 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 待推送 |
-| 6 | 课设产物生成模块 | `feature/artifact-generation` | 未开始 |
+| 5 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 已合并 |
+| 6 | 课设产物生成模块 | `feature/artifact-generation` | 待推送 |
 | 7 | 前端课设工作台模块 | `feature/course-workbench-ui` | 未开始 |
 | 8 | 联调与验收模块 | `feature/integration-acceptance` | 未开始 |
 | 9 | 文档与发布模块 | `release/course-project-agent-v1` | 未开始 |
@@ -457,7 +457,7 @@ course_project_supervisor
 当前状态：
 
 ```text
-待推送
+已合并
 ```
 
 开发记录：
@@ -525,7 +525,38 @@ feature/artifact-generation
 当前状态：
 
 ```text
-未开始
+待推送
+```
+
+开发记录：
+
+```text
+开发时间：2026-06-12
+开发分支：feature/artifact-generation
+已创建：ArtifactGenerationProperties 产物生成配置
+已创建：ArtifactGenerationRequest / ArtifactGenerationResponse
+已创建：ArtifactReviewRequest / ArtifactReviewResponse
+已创建：ArtifactGenerationService
+已创建：ArtifactGenerationController
+已支持：/api/course_project/artifact
+已支持：/api/course_project/review
+已支持：单独生成数据库设计、接口设计、项目结构、报告大纲、报告初稿、测试用例、答辩问答
+已支持：基于规则的完整性审查
+已支持：可选的大模型审查与报告初稿生成
+已创建：ArtifactGenerationControllerTests
+已创建：ArtifactGenerationServiceTests
+已补充：application.yml 中的 artifact-generation 配置
+```
+
+检查结果：
+
+```text
+测试工具：IDEA 自带 Maven 3.9.11
+测试命令：mvn test
+测试结果：BUILD SUCCESS
+测试明细：Tests run: 18, Failures: 0, Errors: 0, Skipped: 0
+覆盖内容：工具模块 smoke test、产物控制器测试、产物服务测试、对话控制器测试、课设任务控制器测试、会话记忆测试、任务 Agent 基础测试、Spring Boot 上下文启动、文档分片单元测试
+说明：产物生成与审查接口的返回和异常文案均为中文
 ```
 
 ### 7. 前端课设工作台模块
@@ -669,15 +700,16 @@ release/course-project-agent-v1
 | 2026-06-12 | Tool 工具模块 | `feature/course-tools` | 实现选题推荐、数据库设计、接口设计、项目结构、报告大纲、答辩准备与时间工具 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-12 | ReAct 课设对话 Agent 模块 | `feature/course-chat-agent` | 实现中文课设对话 Agent、流式接口、工具调用与本地会话记忆 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 | 2026-06-12 | PAR 课设任务 Agent 模块 | `feature/course-project-agent` | 实现 Supervisor、Planner、Executor 三阶段课设方案生成与流式接口 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
+| 2026-06-12 | 课设产物生成模块 | `feature/artifact-generation` | 实现单产物生成与完整性审查接口，支持报告初稿、测试用例与答辩问答生成 | 本地完成，IDEA 自带 Maven 执行 mvn test 通过 |
 
 ## 7. 当前下一步
 
 建议下一步执行：
 
 ```text
-第 5 步：PAR 课设任务 Agent 模块
-建议分支：feature/course-project-agent
-下一步动作：等待用户确认后，将 feature/course-project-agent 推送并准备合并到 main
+第 6 步：课设产物生成模块
+建议分支：feature/artifact-generation
+下一步动作：等待用户确认后，将 feature/artifact-generation 推送并准备合并到 main
 ```
 
 执行前需要用户确认。
